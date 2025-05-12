@@ -27,16 +27,16 @@ Each folder or file corresponds to a week in the course. Summaries are provided 
 
 | Week | Topic                                     | Summary Link              |
 |------|-------------------------------------------|---------------------------|
-| 01   | Introduction & Multithreading Basics       | [`Week 01`](./notes/week01.md)  |
-| 02   | Monitor Synchronization in Java            | [`Week 02`](./notes/week02.md)  |
-| 03   | Synchronization Primitives (Semaphores, Locks) | [`Week 03`](./notes/week03.md)  |
-| 04   | Dangers of Concurrency                     | [`Week 04`](./notes/week04.md)  |
-| 05   | Thread Pools and Task Parallelism          | [`Week 05`](./notes/week05.md)  |
-| 06   | Asynchronous Programming                   | [`Week 06`](./notes/week06.md)  |
-| 07   | Memory Models (Java and .NET)              | [`Week 07`](./notes/week07.md)  |
-| 08   | MPI and Cluster Parallelization (Intro)    | [`Week 08`](./notes/week08.md)  |
-| 09   | MPI Collective Communication & Pi Example  | [`Week 09`](./notes/week09.md)  |
-| 10   | OpenMP and Hybrid MPI+OpenMP               | [`Week 10`](./notes/week10.md)  |
+| 01   | Introduction & Multithreading Basics       | [`Week 01`](./notes/lecture-01.md)  |
+| 02   | Monitor Synchronization in Java            | [`Week 02`](./notes/lecture-02.md)  |
+| 03   | Synchronization Primitives (Semaphores, Locks) | [`Week 03`](./notes/lecture-03.md)  |
+| 04   | Dangers of Concurrency                     | [`Week 04`](./notes/lecture-04.md)  |
+| 05   | Thread Pools and Task Parallelism          | [`Week 05`](./notes/lecture-05.md)  |
+| 06   | Asynchronous Programming                   | [`Week 06`](./notes/lecture-06.md)  |
+| 07   | Memory Models (Java and .NET)              | [`Week 07`](./notes/lecture-07.md)  |
+| 08   | MPI and Cluster Parallelization (Intro)    | [`Week 08`](./notes/lecture-08.md)  |
+| 09   | MPI Collective Communication & Pi Example  | [`Week 09`](./notes/lecture-09.md)  |
+| 10   | OpenMP and Hybrid MPI+OpenMP               | [`Week 10`](./notes/lecture-10.md)  |
 
 ---
 
