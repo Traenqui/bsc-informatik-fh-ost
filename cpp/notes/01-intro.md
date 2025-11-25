@@ -4,7 +4,6 @@
 
 * **Topic of this unit:** Introduction to C++, toolchain, modularization, declarations/definitions, value semantics, C++ vs. Java
 * **Lecturers:** Thomas Corbat, Felix Morgner
-* **Date:** Week 1
 * **Learning objectives:**
 
   * Understand the motivation for C++ and where it is used
@@ -16,7 +15,6 @@
   * Recognise key differences between C++ and Java (objects, memory, undefined behavior)
   * Use AI tools like Copilot critically and responsibly
 
----
 
 ## 1. Introduction / Context
 
@@ -29,7 +27,6 @@ Week 1 lays the groundwork:
 * How do we structure code into libraries with unit tests?
 * How do C++ concepts differ from Java, especially concerning memory and objects?
 
----
 
 ## 2. Key Terms and Definitions
 
@@ -47,7 +44,6 @@ Week 1 lays the groundwork:
 | **Static library**            | Library type linked into an executable at link time. In this course, static libraries are used to simplify the toolchain.                                                          |
 | **Unit test**                 | Automated test of small, isolated units of functionality. In this module, the Catch2 framework is used.                                                                            |
 
----
 
 ## 3. Main Content
 
@@ -79,7 +75,6 @@ Week 1 lays the groundwork:
   * They are **not allowed** in the exam.
   * Useful as an “explainer” if no human can help – but only **after** you have tried yourself.
 
----
 
 ### 3.2 Why C++? – Language Properties & Course Goals
 
@@ -129,7 +124,6 @@ mindmap
       "unit testing"
 ```
 
----
 
 ### 3.3 First C++ Program & Typical “Hello World” Issues
 
@@ -178,7 +172,6 @@ auto main() -> int {
 * No unnecessary comments; no `using namespace std;`.
 * Short and clear.
 
----
 
 ### 3.4 The C++ Compilation Process
 
@@ -235,7 +228,6 @@ flowchart LR
   L -->|"sayhello (executable)"| EXE
 ```
 
----
 
 ### 3.5 Modularization & Unit Testing
 
@@ -317,7 +309,6 @@ flowchart TD
   TEST -->|link| LIB
 ```
 
----
 
 ### 3.6 Declarations, Definitions & Include Guards
 
@@ -381,7 +372,6 @@ flowchart TD
   B -->|yes| E[skip content]
 ```
 
----
 
 ### 3.7 C++ is NOT Java – Value Semantics, Stack/Heap, Parameter Passing
 
@@ -502,7 +492,6 @@ auto scale(Point& point, int factor) -> void {
 
 * Here, `scale` works directly on the **original object**, so changes are visible to the caller.
 
----
 
 ## 4. Relationships and Interpretation
 
@@ -512,7 +501,6 @@ auto scale(Point& point, int factor) -> void {
 * C++’s **value semantics** fit this structure well: library functions clearly work on values or explicit references, so side effects are intentional.
 * The comparison with **Java** shows that similar syntax does **not** mean equal semantics – especially regarding memory management, objects, and error handling. This is a major source of beginner mistakes and undefined behavior.
 
----
 
 ## 5. Examples and Applications
 
@@ -540,7 +528,6 @@ auto scale(Point& point, int factor) -> void {
    * `Point&` by reference → side effects on the caller’s object.
    * Highlights how important the choice of parameter type is.
 
----
 
 ## 6. Summary / Takeaways
 
@@ -555,7 +542,6 @@ auto scale(Point& point, int factor) -> void {
 * C++ is **not** Java: similar syntax, but different semantics, especially for memory management, objects, and failure modes.
 * Modern C++ practice includes automated **unit tests** (here with Catch2) as a first-class part of professional development.
 
----
 
 ## 7. Study Tips
 
@@ -584,7 +570,6 @@ auto scale(Point& point, int factor) -> void {
   * Try on your own first, then ask AI for alternative solutions or explanations.
   * Do not copy code blindly; always check and understand it.
 
----
 
 ## 8. Extensions / Further Concepts
 
@@ -600,12 +585,15 @@ In the following weeks, the course will cover, among others:
 
 A solid understanding of the Week 1 basics is required to build these topics safely and effectively.
 
----
 
 ## 9. References & Literature (IEEE)
 
-- [1] ISO/IEC, *Programming Languages — C++ (ISO/IEC 14882:2020)*, International Organization for Standardization, 2020.
-- [2] B. Stroustrup, *The C++ Programming Language*, 4th ed., Addison-Wesley, 2013.
-- [3] N. M. Josuttis, *The C++ Standard Library: A Tutorial and Reference*, 2nd ed., Addison-Wesley, 2012.
-- [4] Catch2 Developers, “Catch2 Unit Test Framework,” online documentation, accessed: [reader’s current date].
-- [5] Lecture slides “Modern and Lucid C++ for Professional Programmers – Week 1 – Introduction to C++”, OST – Ostschweizer Fachhochschule, HS2025.
+[1] ISO/IEC, *Programming Languages — C++ (ISO/IEC 14882:2020)*, International Organization for Standardization, 2020.
+
+[2] B. Stroustrup, *The C++ Programming Language*, 4th ed., Addison-Wesley, 2013.
+
+[3] N. M. Josuttis, *The C++ Standard Library: A Tutorial and Reference*, 2nd ed., Addison-Wesley, 2012.
+
+[4] Catch2 Developers, “Catch2 Unit Test Framework,” online documentation, accessed: [reader’s current date].
+
+[5] Lecture slides “Modern and Lucid C++ for Professional Programmers – Week 1 – Introduction to C++”, OST – Ostschweizer Fachhochschule, HS2025.

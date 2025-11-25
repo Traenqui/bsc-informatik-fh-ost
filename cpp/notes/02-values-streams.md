@@ -4,7 +4,6 @@
 
 * **Topic of this unit:** Values, variables, literals, operators, strings, and streams
 * **Lecturers:** Thomas Corbat, Felix Morgner 
-* **Date:** Week 2
 * **Learning objectives:**
 
   * Know how and where to define variables
@@ -14,7 +13,6 @@
   * Read from and write to streams safely
   * Understand the possible states of an `std::istream` and how to recover
 
----
 
 ## 1. Introduction / Context
 
@@ -26,7 +24,6 @@ Correct handling of variables and I/O is essential for:
 * writing **testable functions** that take values and references explicitly,
 * dealing robustly with **user input** and errors.
 
----
 
 ## 2. Key Terms and Definitions
 
@@ -42,7 +39,6 @@ Correct handling of variables and I/O is essential for:
 | **Stream state bits**             | Flags on streams: `goodbit` (OK), `failbit` (formatting failed), `eofbit` (end of file), `badbit` (serious I/O error).                        |
 | **Formatted vs. unformatted I/O** | Formatted I/O uses `>>` and `<<` with type conversions; unformatted uses `get()`, `put()`, etc., working directly on characters.              |
 
----
 
 ## 3. Main Content
 
@@ -150,7 +146,6 @@ auto process(int value) -> void {   // #1
   * Built-in numeric types: `short`, `int`, `long`, `long long` (+ unsigned variants), `bool`, `char`, `signed/unsigned char`, `float`, `double`, `long double`, and `void` (special).
   * Standard library types like `std::string` and `std::vector` require `#include`. 
 
----
 
 ### 3.2 Values, Literals, and Operators
 
@@ -262,7 +257,6 @@ REQUIRE_THAT(actual,
     Catch::Matchers::WithinRel(expected, delta));
 ```
 
----
 
 ### 3.3 Strings and `std::string`
 
@@ -337,7 +331,6 @@ auto main() -> int {
 }
 ```
 
----
 
 ### 3.4 Streams and I/O
 
@@ -545,7 +538,6 @@ auto main() -> int {
 * `<istream>`, `<ostream>`: full definitions and operators; usually used in `.cpp` files.
 * `<iostream>`: everything above plus global `std::cin`, `std::cout`, `std::cerr`; typically needed only in the file containing `main()`. 
 
----
 
 ## 4. Relationships and Interpretation
 
@@ -555,7 +547,6 @@ auto main() -> int {
 * Stream **states** and error handling are crucial for writing robust, user-facing programs instead of “happy-path-only” scripts.
 * Many design principles here (avoid global mutable state, prefer `const`, clear interfaces with streams passed in) support modularisation and testing from Week 1.
 
----
 
 ## 5. Examples and Applications
 
@@ -580,7 +571,6 @@ auto main() -> int {
 
    * Small Unix-style filter program using unformatted I/O (`get`, `put`) and `<cctype>` helpers.
 
----
 
 ## 6. Summary / Takeaways
 
@@ -593,7 +583,6 @@ auto main() -> int {
 * Formatting manipulators in `<iomanip>` make it easy to control the textual representation of values.
 * Minimal includes (`<iosfwd>`, `<istream>`, `<ostream>`, `<iostream>`) keep compile times down and dependencies clean.
 
----
 
 ## 7. Study Tips
 
@@ -621,7 +610,6 @@ auto main() -> int {
 
   * Deliberately feed invalid input and observe how stream state changes and what your program does.
 
----
 
 ## 8. Extensions / Further Concepts
 
@@ -635,12 +623,15 @@ Later parts of the course will build on these ideas:
 
 A solid understanding of Week 2 is essential for correctly using containers, algorithms, and more complex data structures later.
 
----
 
 ## 9. References & Literature (IEEE)
 
-- [1] ISO/IEC, *Programming Languages — C++ (ISO/IEC 14882:2020)*, International Organization for Standardization, 2020.
-- [2] B. Stroustrup, *The C++ Programming Language*, 4th ed., Addison-Wesley, 2013.
-- [3] N. M. Josuttis, *The C++ Standard Library: A Tutorial and Reference*, 2nd ed., Addison-Wesley, 2012.
-- [4] cppreference.com, “Input/output library,” online reference for C++ I/O, accessed: [reader’s current date].
-- [5] Lecture slides “Modern and Lucid C++ for Professional Programmers – Week 2 – Values and Streams”, OST – Ostschweizer Fachhochschule, HS2025. 
+[1] ISO/IEC, *Programming Languages — C++ (ISO/IEC 14882:2020)*, International Organization for Standardization, 2020.
+
+[2] B. Stroustrup, *The C++ Programming Language*, 4th ed., Addison-Wesley, 2013.
+
+[3] N. M. Josuttis, *The C++ Standard Library: A Tutorial and Reference*, 2nd ed., Addison-Wesley, 2012.
+
+[4] cppreference.com, “Input/output library,” online reference for C++ I/O, accessed: [reader’s current date].
+
+[5] Lecture slides “Modern and Lucid C++ for Professional Programmers – Week 2 – Values and Streams”, OST – Ostschweizer Fachhochschule, HS2025. 

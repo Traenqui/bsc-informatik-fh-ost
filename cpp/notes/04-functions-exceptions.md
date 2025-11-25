@@ -4,7 +4,6 @@
 
 * **Topic of this unit:** Functions, parameter/return design, lambdas, error handling strategies, and exceptions 
 * **Lecturers:** Thomas Corbat, Felix Morgner 
-* **Date:** Week 4
 * **Learning objectives:**
 
   * Choose appropriate parameter passing styles (value, reference, const reference)
@@ -16,7 +15,6 @@
   * Throw, catch, and test exceptions (with Catch2)
   * Understand `noexcept` and narrow vs. wide contracts
 
----
 
 ## 1. Introduction / Context
 
@@ -30,7 +28,6 @@ Week 4 focuses on how to design **functions** that are safe, expressive, and eas
 
 The lecture contrasts **good** and **bad** examples of parameter passing and error handling, and closes with a checklist for “good functions.” 
 
----
 
 ## 2. Key Terms and Definitions
 
@@ -50,7 +47,6 @@ The lecture contrasts **good** and **bad** examples of parameter passing and err
 | **Exception**                 | Object thrown via `throw` to signal errors that violate pre/postconditions; can be caught by `try`–`catch`.                                           |
 | **`noexcept`**                | Function specifier that promises not to throw; if an exception escapes, the program terminates.                                                       |
 
----
 
 ## 3. Main Content
 
@@ -113,7 +109,6 @@ flowchart TD
   D -->|No or non-copyable| F["Use T const& (const ref)"]
 ```
 
----
 
 ### 3.2 Return Types: Value vs. Reference
 
@@ -160,7 +155,6 @@ Compiler can often detect this.
 * Returning `POI const& migros = createPOI(location);` and later `return std::vector{migros};` is **unusual but correct**: the reference extends the temporary’s lifetime until the end of the block; the vector stores a copy.
 * Returning `std::string const&` from `max("a", "b")` is **wrong**: the returned reference refers to a temporary created from a literal; that temporary dies at end of the full expression.
 
----
 
 ### 3.3 Function Overloading and Default Arguments
 
@@ -196,7 +190,6 @@ incr(counter, 5); // explicit delta
 * Equivalent to having several overloads with fewer parameters.
 * The “Right or Wrong” example where a middle parameter has a default but the rightmost has none is **wrong**: defaults must be specified from the **right**. 
 
----
 
 ### 3.4 Functions as Parameters and `std::function`
 
@@ -237,7 +230,6 @@ auto main() -> int {
   * lambdas (with or without captures),
   * other callables. 
 
----
 
 ### 3.5 Lambdas and Captures
 
@@ -318,7 +310,6 @@ auto squares = [x = 1]() mutable {
 
 Multiple captures are separated by commas. 
 
----
 
 ### 3.6 `auto` Return Type and Trailing Return Types
 
@@ -354,7 +345,6 @@ auto isOdd = [](auto value) -> bool {
 
 This style allows declarations in headers without needing the body for type deduction. 
 
----
 
 ### 3.7 Evaluation Order of Function Arguments
 
@@ -378,7 +368,6 @@ auto main() -> int {
 * Whether the first or second `inputName` call happens first is unspecified.
 * Don’t write code that depends on a particular evaluation order of arguments. 
 
----
 
 ### 3.8 Error Handling Strategies in Functions
 
@@ -489,7 +478,6 @@ The slides list **five strategies**:
    * Prevents continuing with invalid logic.
    * Suitable when contracts are violated or postconditions can’t be met and the caller must **not** continue blindly. 
 
----
 
 ### 3.9 Exceptions: Throwing, Catching, Testing, `noexcept`
 
@@ -597,7 +585,6 @@ auto lie() noexcept -> void {
 * Declares that a function should not throw.
 * If an exception propagates out of a `noexcept` function, the program aborts.
 
----
 
 ## 4. Relationships and Interpretation
 
@@ -608,7 +595,6 @@ auto lie() noexcept -> void {
 * **Exceptions**, when used for contract violations only, keep normal code simple while still handling rare error paths robustly.
 * `noexcept` and good exception testing improve reliability and allow better optimization.
 
----
 
 ## 5. Examples and Applications
 
@@ -629,7 +615,6 @@ auto lie() noexcept -> void {
 
   * Catch2 test cases that assert both successful results and correct exceptions.
 
----
 
 ## 6. Summary / Takeaways
 
@@ -648,7 +633,6 @@ auto lie() noexcept -> void {
 * Use standard exception types and Catch2’s `REQUIRE_THROWS*` macros to test them.
 * Mark truly non-throwing functions as `noexcept`; never use exceptions as a regular control-flow tool.
 
----
 
 ## 7. Study Hints
 
@@ -673,7 +657,6 @@ auto lie() noexcept -> void {
   * Functions that silently ignore errors,
   * Exceptions used as regular control flow.
 
----
 
 ## 8. Extensions / Further Concepts
 
@@ -685,12 +668,15 @@ auto lie() noexcept -> void {
 
 These build directly on the function design, contracts, and exception handling techniques from Week 4. 
 
----
 
 ## 9. References & Literature (IEEE)
 
-- [1] ISO/IEC, *Programming Languages — C++ (ISO/IEC 14882:2020)*, International Organization for Standardization, 2020.
-- [2] B. Stroustrup, *The C++ Programming Language*, 4th ed., Addison-Wesley, 2013.
-- [3] N. M. Josuttis, *The C++ Standard Library: A Tutorial and Reference*, 2nd ed., Addison-Wesley, 2012.
-- [4] Catch2 Developers, “Catch2 Unit Test Framework,” online documentation, accessed: [reader’s current date].
-- [5] Lecture slides “Modern and Lucid C++ for Professional Programmers – Week 4 – Functions and Exceptions”, OST – Ostschweizer Fachhochschule, HS2025. 
+[1] ISO/IEC, *Programming Languages — C++ (ISO/IEC 14882:2020)*, International Organization for Standardization, 2020.
+
+[2] B. Stroustrup, *The C++ Programming Language*, 4th ed., Addison-Wesley, 2013.
+
+[3] N. M. Josuttis, *The C++ Standard Library: A Tutorial and Reference*, 2nd ed., Addison-Wesley, 2012.
+
+[4] Catch2 Developers, “Catch2 Unit Test Framework,” online documentation, accessed: [reader’s current date].
+
+[5] Lecture slides “Modern and Lucid C++ for Professional Programmers – Week 4 – Functions and Exceptions”, OST – Ostschweizer Fachhochschule, HS2025. 

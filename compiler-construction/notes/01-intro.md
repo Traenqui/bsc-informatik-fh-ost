@@ -15,8 +15,6 @@
   * Syntax, Semantik und Grammatik einer Programmiersprache unterscheiden können.
   * Eindeutigkeit vs. Mehrdeutigkeit einer Grammatik erkennen.
 
----
-
 ## 1. Einführung / Kontext
 
 In dieser ersten Vorlesung wird der Rahmen des Moduls „Compilerbau“ abgesteckt. Es geht um *Compiler- und Laufzeitsystem-Bau von A bis Z* – von der Sprachspezifikation über Parsing, semantische Analyse und Codegenerierung bis hin zu Laufzeitsystem, Garbage Collection und JIT-Compilation.
@@ -26,8 +24,6 @@ Die Einheit liefert:
 * einen **Überblick über die Komponenten** eines Compilers und eines Laufzeitsystems,
 * erste **Beispiele für Syntaxdefinitionen** mit EBNF,
 * sowie Motivation: Warum es lohnt, Compilerbau zu studieren (besseres Verständnis von Sprachen, Kosten von Sprachfeatures, eigene Sprachen entwickeln, Einsatz von Compilertechniken in Tools).
-
----
 
 ## 2. Zentrale Begriffe und Definitionen
 
@@ -63,8 +59,6 @@ Die Einheit liefert:
 | EBNF                                           | Extended Backus-Naur Form – erweiterter Formalismus zur Beschreibung von Syntax (inkl. Wiederholung, Option).                 |
 | BNF                                            | Backus-Naur Form – ursprünglicher Syntaxformalismus, ohne optionale und wiederholte Konstrukte; nutzt ε für „leer“.           |
 | Ambiguität (Mehrdeutigkeit)                    | Eine Grammatik ist mehrdeutig, wenn es für einen Satz mehrere verschiedene Syntaxbäume gibt.                                  |
-
----
 
 ## 3. Hauptinhalte
 
@@ -116,8 +110,6 @@ flowchart LR
 
 Weitere Varianten (z.B. Jython, PyPy, CPython) kombinieren Compiler und Interpreter auf unterschiedliche Weise (Bytecode + VM, JIT-Compiler etc.).
 
----
-
 ### 3.2 Aufbau und Phasen eines Compilers
 
 **Typische Phasen:**
@@ -153,8 +145,6 @@ flowchart LR
 
   * Übersetzung der (ggf. optimierten) IR in Maschinencode oder Zwischensprache.
 
----
-
 ### 3.3 Aufbau eines Laufzeitsystems
 
 **Komponenten laut Vorlesung:**
@@ -178,8 +168,6 @@ flowchart LR
 * **JIT-Compiler:** Übersetzt häufig ausgeführte Teile des Codes zur Laufzeit in nativen Code.
 * **Metadaten, Heap & Stacks:** Verwalten Informationen über Klassen/Typen, Objekte und Prozedur-/Methodenaufrufe.
 * **Garbage Collection:** Findet und freigibt nicht mehr erreichbare Objekte.
-
----
 
 ### 3.4 Syntaxdefinition und EBNF
 
@@ -218,8 +206,6 @@ Verb    = "talks" | "listens".
 
 * `|` bindet **schwächer** als andere Konstrukte.
 * Runde Klammern `(...)` erhöhen die Bindungsstärke.
-
----
 
 ### 3.5 Beispiele: Arithmetische Ausdrücke und Syntaxbäume
 
@@ -274,8 +260,6 @@ Beispiel: `(a + b) * (c + d)`
 * Durch `Factor = "(" Expression ")"` lässt sich diese Klammerung exakt im Syntaxbaum wiedergeben.
 * Klammern können Präzedenzregeln lokal „übersteuern“.
 
----
-
 ### 3.6 Problematische und mehrdeutige Syntax
 
 #### Option vs. Wiederholung
@@ -311,8 +295,6 @@ Satz: `1 - 2 - 3`
 
 Die Grammatik ist **mehrdeutig**, weil es mehrere gültige Parse-Bäume für denselben Satz gibt. Für Compiler ist das ungeeignet – Praktisch braucht man eine eindeutige Grammatik (z.B. durch Einführung von Ebenen für Präzedenz und Assoziativität, wie bei `Expression`/`Term`/`Factor`).
 
----
-
 ## 4. Zusammenhänge und Interpretation
 
 * **Compiler und Laufzeitsystem** bilden gemeinsam die Ausführungsumgebung:
@@ -327,8 +309,6 @@ Die Grammatik ist **mehrdeutig**, weil es mehrere gültige Parse-Bäume für den
 * **Compilerbau als Musterbaukasten:**
 
   * Viele Techniken (z.B. Parsing, Datenflussanalyse, IR-Transformationen) werden auch in Code-Analyse-Tools, Refactoring-Engines, Query-Rewrite-Systemen, Konvertern usw. verwendet.
-
----
 
 ## 5. Beispiele und Anwendungen
 
@@ -352,8 +332,6 @@ Die Grammatik ist **mehrdeutig**, weil es mehrere gültige Parse-Bäume für den
      * Linter / statische Analysen
      * Formatierer (Pretty Printer)
 
----
-
 ## 6. Zusammenfassung / Takeaways
 
 * Ein **Compiler** transformiert Quellcode in Maschinencode oder Zwischensprache; ein **Laufzeitsystem** führt diesen Code aus und verwaltet Ressourcen.
@@ -363,8 +341,6 @@ Die Grammatik ist **mehrdeutig**, weil es mehrere gültige Parse-Bäume für den
 * Die Sprache einer Grammatik ist die Menge der Terminalfolgen, die vom Startsymbol herleitbar sind.
 * **Eindeutige Grammatik** ist essenziell – Ambiguität (z.B. `1 - 2 - 3`) ist für Compiler ungeeignet.
 * Verständnis der Syntax- und Laufzeitkonzepte ist Grundlage, um eigene Sprachen und Werkzeuge zu entwerfen.
-
----
 
 ## 7. Lernhinweise
 
@@ -384,8 +360,6 @@ Die Grammatik ist **mehrdeutig**, weil es mehrere gültige Parse-Bäume für den
 
   * Ziel ist ein Compiler und ein Laufzeitsystem für „SmallJ“/„SJ“. Alles, was jetzt zu Syntax und Architektur kommt, wird im Projekt direkt gebraucht.
 
----
-
 ## 8. Vertiefung / weiterführende Konzepte
 
 Folgende Themen werden in späteren Vorlesungen bzw. zur Vertiefung behandelt:
@@ -399,12 +373,14 @@ Folgende Themen werden in späteren Vorlesungen bzw. zur Vertiefung behandelt:
 * **Garbage-Collector-Varianten** (Mark-Sweep, Generational GC, etc.)
 * **Loader-Mechanismen** und dynamische Verlinkung
 
----
-
 ## 9. Quellen & Literatur (IEEE)
 
-- [1] L. Bläser, *Modern Runtime System and Compiler Design*, Independently Published, 2021.
-- [2] A. V. Aho, M. Lam, R. Sethi, and J. D. Ullman, *Compilers: Principles, Techniques, and Tools*, 2nd ed. Boston, MA, USA: Addison-Wesley, 2006.
-- [3] N. Wirth, *Grundlagen und Techniken des Compilerbaus*. Bonn, Deutschland: Addison-Wesley, 1996.
-- [4] N. Wirth, “What can we do about the unnecessary diversity of notation for syntactic definitions?,” *Commun. ACM*, vol. 20, no. 11, pp. 822–823, Nov. 1977.
-- [5] ISO/IEC 14977, “Extended Backus–Naur form (EBNF),” International Organization for Standardization, 1996.
+[1] L. Bläser, *Modern Runtime System and Compiler Design*, Independently Published, 2021.
+
+[2] A. V. Aho, M. Lam, R. Sethi, and J. D. Ullman, *Compilers: Principles, Techniques, and Tools*, 2nd ed. Boston, MA, USA: Addison-Wesley, 2006.
+
+[3] N. Wirth, *Grundlagen und Techniken des Compilerbaus*. Bonn, Deutschland: Addison-Wesley, 1996.
+
+[4] N. Wirth, “What can we do about the unnecessary diversity of notation for syntactic definitions?,” *Commun. ACM*, vol. 20, no. 11, pp. 822–823, Nov. 1977.
+
+[5] ISO/IEC 14977, “Extended Backus–Naur form (EBNF),” International Organization for Standardization, 1996.

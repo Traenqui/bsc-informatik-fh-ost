@@ -4,7 +4,6 @@
 
 * **Topic of this unit:** Basic sequence containers, iteration, algorithms, and stream iterators 
 * **Lecturers:** Thomas Corbat, Felix Morgner 
-* **Date:** Week 3
 * **Learning objectives:**
 
   * Use `std::array` and `std::vector` instead of C-style arrays
@@ -14,7 +13,6 @@
   * Connect containers and streams to algorithms using iterators
   * Read from and write to streams using (stream) iterators
 
----
 
 ## 1. Introduction / Context
 
@@ -30,7 +28,6 @@ This week moves from **single values** (Week 2) to **sequences of values** and h
 
 The diagrams on pages 24 and 32 of the slides visualize iterators as the “glue” between containers/streams and algorithms. 
 
----
 
 ## 2. Key Terms and Definitions
 
@@ -49,7 +46,6 @@ The diagrams on pages 24 and 32 of the slides visualize iterators as the “glue
 | **Stream iterator**                  | `std::istream_iterator<T>` / `std::ostream_iterator<T>` that read/write values from/to streams using `>>` / `<<`.                    |
 | **`std::istreambuf_iterator<char>`** | Stream iterator that reads raw characters via `get()`, including whitespace.                                                         |
 
----
 
 ## 3. Main Content
 
@@ -114,7 +110,6 @@ The diagram on page 11 shows how `std::vector` can grow and where iterators (`be
 * `std::vector<T>`: container storing **T objects directly**.
 * Code example in slides (page 12) contrasts a Java `ArrayList<Ship>` with a C++ `std::vector<Ship>`; in C++ the ships are actual objects in the container, not references. 
 
----
 
 ### 3.2 Iterating over Containers
 
@@ -170,7 +165,6 @@ for (auto it = std::begin(v); it != std::end(v); ++it) {
 * `std::cbegin(v)` / `std::cend(v)` – constant iterators, read-only.
 * Most useful when you need the iterator itself (e.g. for `insert`, `erase`, or range splitting). 
 
----
 
 ### 3.3 Algorithms and Lambdas
 
@@ -252,7 +246,6 @@ auto printAll(std::vector<int> v, std::ostream& out) -> void {
 * `std::ranges::for_each` takes the container directly instead of `begin`/`end`.
 * Many classic algorithms have `std::ranges::` equivalents with simpler parameter lists. 
 
----
 
 ### 3.4 Modifying and Filling Vectors
 
@@ -355,7 +348,6 @@ bool find_with_algorithm(std::vector<int> const& values, int v) {
 
 Algorithms express your *intent* directly and are more likely to be correct, readable, and optimised. 
 
----
 
 ### 3.5 Iterators for I/O
 
@@ -442,7 +434,6 @@ input_it eof{};
 std::vector<int> const v{input_it{std::cin}, eof};
 ```
 
----
 
 ## 4. Relationships and Interpretation
 
@@ -458,7 +449,6 @@ $$
 \text{Container/Stream} \xrightarrow{\text{Iterators}} \text{Algorithm (Ranges)}
 $$
 
----
 
 ## 5. Examples and Applications
 
@@ -476,7 +466,6 @@ $$
 * Filling vectors from standard input using `istream_iterator` or `istream_view` and `std::ranges::copy`.
 * Building simple Unix-style filters using `istreambuf_iterator<char>` to copy and transform raw character streams.
 
----
 
 ## 6. Summary / Takeaways
 
@@ -488,7 +477,6 @@ $$
 * Use **stream iterators** to connect algorithms with input and output streams.
 * Overall motto: express *what* you want using algorithms; let the standard library handle the *how*.
 
----
 
 ## 7. Study Hints
 
@@ -504,7 +492,6 @@ $$
 * When you write a loop, ask: “Is there a standard algorithm that expresses this more clearly?”
 * Get comfortable reading and writing lambdas with captures – they are essential with algorithms.
 
----
 
 ## 8. Extensions / Further Concepts
 
@@ -518,11 +505,13 @@ Later topics will build on this:
 
 A solid grasp of Week 3 is required for understanding these higher-level abstractions.
 
----
 
 ## 9. References & Literature (IEEE)
 
-- [1] ISO/IEC, *Programming Languages — C++ (ISO/IEC 14882:2020)*, International Organization for Standardization, 2020.
-- [2] N. M. Josuttis, *The C++ Standard Library: A Tutorial and Reference*, 2nd ed., Addison-Wesley, 2012.
-- [3] cppreference.com, “Containers library” and “Iterators library,” online reference for C++ containers and iterators, accessed: [reader’s current date].
-- [4] Lecture slides “Modern and Lucid C++ for Professional Programmers – Week 3 – Sequences and Iterators”, OST – Ostschweizer Fachhochschule, HS2025. 
+[1] ISO/IEC, *Programming Languages — C++ (ISO/IEC 14882:2020)*, International Organization for Standardization, 2020.
+
+[2] N. M. Josuttis, *The C++ Standard Library: A Tutorial and Reference*, 2nd ed., Addison-Wesley, 2012.
+
+[3] cppreference.com, “Containers library” and “Iterators library,” online reference for C++ containers and iterators, accessed: [reader’s current date].
+
+[4] Lecture slides “Modern and Lucid C++ for Professional Programmers – Week 3 – Sequences and Iterators”, OST – Ostschweizer Fachhochschule, HS2025. 

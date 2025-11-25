@@ -4,7 +4,6 @@
 
 * **Topic of this unit:** Classes, constructors, invariants, basic inheritance, and operator overloading (incl. stream operators) 
 * **Lecturers:** Thomas Corbat, Felix Morgner 
-* **Date:** Week 5
 * **Learning objectives:**
 
   * Implement your own value types with classes
@@ -16,7 +15,6 @@
   * Overload comparison operators (including C++20 three-way comparison)
   * Implement `operator<<` and `operator>>` as free functions that cooperate with streams
 
----
 
 ## 1. Introduction / Context
 
@@ -30,34 +28,32 @@ Week 5 is where you start building **your own types** instead of just combining 
 
 The running example is a `Date` class that encapsulates a calendar date and enforces “valid date” as its invariant.
 
----
 
 ## 2. Key Terms and Definitions
 
-| Term                                 | Definition                                                                                                                                                                       |
-| ------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Class**                            | User-defined type bundling state (member variables) and behavior (member functions). Usually declared in a header file.                                                          |
-| **Object / instance**                | A concrete value of a given class type; holds actual member variable values.                                                                                                     |
-| **Class invariant**                  | Property that must hold for all properly constructed instances (e.g. `Date` always represents a valid date). Constructors must establish it; member functions must preserve it.  |
-| **Access specifier**                 | `public`, `protected`, `private`; controls visibility of members. Default: `private` for `class`, `public` for `struct`.                                                         |
-| **Member variable (field)**          | Variable inside a class that stores part of the object’s state.                                                                                                                  |
-| **Member function**                  | Function declared inside a class; has an implicit `this` pointer to the current object.                                                                                          |
-| **Static member function**           | Member function without `this`; associated with the class, not a particular object. Called as `Class::function()`.                                                               |
-| **Static data member**               | Variable shared by all instances of a class; defined once in a source file.                                                                                                      |
-| **Default constructor**              | Constructor that can be called without arguments; either implicit or explicitly declared.                                                                                        |
-| **Copy constructor**                 | Constructor taking `T const&` to create a new object as a copy of another.                                                                                                       |
-| **Move constructor**                 | Constructor taking `T&&` to move resources from a temporary/expiring object.                                                                                                     |
-| **Converting constructor**           | Constructor callable with a single argument of a different type; should usually be `explicit`.                                                                                   |
-| **Initializer-list constructor**     | Constructor taking `std::initializer_list<T>`; used for `{...}` initialization (e.g. `std::vector v{1,2,3};`).                                                                   |
-| **NSDMI**                            | Non-static data member initializer – default value for a member directly in the class definition (`int year{9999};`).                                                            |
-| **Defaulted function**               | Special member declared with `= default;` to request the compiler-generated implementation.                                                                                      |
-| **Deleted function**                 | Function declared with `= delete;` to forbid its use (e.g. deleted copy constructor).                                                                                            |
-| **Operator overloading**             | Providing custom implementations for operators (e.g. `==`, `<`, `<<`, `>>`) for user-defined types.                                                                              |
-| **Three-way comparison (`<=>`)**     | C++20 “spaceship operator” that returns an ordering category (`std::strong_ordering`, etc.) and gives `<, >, <=, >=` for free.                                                   |
-| **Strong / weak / partial ordering** | Different comparison categories describing total order, case-insensitive order, or partially ordered sets (e.g. `double` with `NaN`).                                            |
-| **Stream insertion / extraction**    | `operator<<` (output) and `operator>>` (input) for types; must be free functions taking streams by reference.                                                                    |
+| Term                                 | Definition                                                                                                                                                                      |
+| ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Class**                            | User-defined type bundling state (member variables) and behavior (member functions). Usually declared in a header file.                                                         |
+| **Object / instance**                | A concrete value of a given class type; holds actual member variable values.                                                                                                    |
+| **Class invariant**                  | Property that must hold for all properly constructed instances (e.g. `Date` always represents a valid date). Constructors must establish it; member functions must preserve it. |
+| **Access specifier**                 | `public`, `protected`, `private`; controls visibility of members. Default: `private` for `class`, `public` for `struct`.                                                        |
+| **Member variable (field)**          | Variable inside a class that stores part of the object’s state.                                                                                                                 |
+| **Member function**                  | Function declared inside a class; has an implicit `this` pointer to the current object.                                                                                         |
+| **Static member function**           | Member function without `this`; associated with the class, not a particular object. Called as `Class::function()`.                                                              |
+| **Static data member**               | Variable shared by all instances of a class; defined once in a source file.                                                                                                     |
+| **Default constructor**              | Constructor that can be called without arguments; either implicit or explicitly declared.                                                                                       |
+| **Copy constructor**                 | Constructor taking `T const&` to create a new object as a copy of another.                                                                                                      |
+| **Move constructor**                 | Constructor taking `T&&` to move resources from a temporary/expiring object.                                                                                                    |
+| **Converting constructor**           | Constructor callable with a single argument of a different type; should usually be `explicit`.                                                                                  |
+| **Initializer-list constructor**     | Constructor taking `std::initializer_list<T>`; used for `{...}` initialization (e.g. `std::vector v{1,2,3};`).                                                                  |
+| **NSDMI**                            | Non-static data member initializer – default value for a member directly in the class definition (`int year{9999};`).                                                           |
+| **Defaulted function**               | Special member declared with `= default;` to request the compiler-generated implementation.                                                                                     |
+| **Deleted function**                 | Function declared with `= delete;` to forbid its use (e.g. deleted copy constructor).                                                                                           |
+| **Operator overloading**             | Providing custom implementations for operators (e.g. `==`, `<`, `<<`, `>>`) for user-defined types.                                                                             |
+| **Three-way comparison (`<=>`)**     | C++20 “spaceship operator” that returns an ordering category (`std::strong_ordering`, etc.) and gives `<, >, <=, >=` for free.                                                  |
+| **Strong / weak / partial ordering** | Different comparison categories describing total order, case-insensitive order, or partially ordered sets (e.g. `double` with `NaN`).                                           |
+| **Stream insertion / extraction**    | `operator<<` (output) and `operator>>` (input) for types; must be free functions taking streams by reference.                                                                   |
 
----
 
 ## 3. Main Content
 
@@ -117,7 +113,6 @@ class Date {
 }
 ```
 
----
 
 ### 3.2 Member Variables and Static Members
 
@@ -147,7 +142,6 @@ Date Date::favoriteStudentsBirthday{1995, 5, 10};
 
 * Accessed as `Date::myBirthday` and `Date::favoriteStudentsBirthday`.
 
----
 
 ### 3.3 Constructors, Destructor, Defaults and Deletions
 
@@ -251,7 +245,6 @@ Date::Date(int year, int month, int day)
 
 * Reduces duplication by centralizing initialization logic.
 
----
 
 ### 3.4 Member Functions, `const` and Static
 
@@ -291,7 +284,6 @@ static auto isLeapYear(int year) -> bool;
 auto Date::isLeapYear(int year) -> bool { /* ... */ }
 ```
 
----
 
 ### 3.5 Basic Inheritance
 
@@ -323,7 +315,6 @@ Key points:
   * `struct Derived : Base` → **public** inheritance.
 * The “Right or Wrong?” example on page 24 shows that `class Car : Vehicle` inherits **privately** from `Vehicle`, so `car.location` is not accessible from outside. Correct would be `class Car : public Vehicle`. 
 
----
 
 ### 3.6 Operator Overloading Basics
 
@@ -338,7 +329,6 @@ auto operator op(<parameters>) -> <returntype>;
 
 Overloadable operators include arithmetic, comparison, assignment, indexing, call, increment/decrement, and `<<` / `>>`. Non-overloadable: `::`, `.*`, `.`, `?:`, etc.
 
----
 
 ### 3.7 Comparisons: Equality, Ordering, Spaceship
 
@@ -422,7 +412,6 @@ auto operator<=(Date const& right) const -> bool { return !(right < *this); }
 
 Or split into member `<` and all other comparison operators as **free** operators (page 43).
 
----
 
 ### 3.8 Stream Operators and I/O-Friendly Classes
 
@@ -509,7 +498,6 @@ flowchart TD
   TRY -->|no| FAIL["is.setstate(failbit)"]
 ```
 
----
 
 ## 4. Relationships and Interpretation
 
@@ -522,7 +510,6 @@ flowchart TD
   * `<<`, `>>` let your types participate naturally in stream I/O.
 * Using **constructors + exceptions** for invariants and **stream states** for I/O errors keeps logic and error handling consistent across your codebase. 
 
----
 
 ## 5. Examples and Applications
 
@@ -557,7 +544,6 @@ flowchart TD
 
   * Demonstrates how to implement robust input operators by delegating to a member `read` function and using exceptions + stream state properly.
 
----
 
 ## 6. Summary / Takeaways
 
@@ -573,7 +559,6 @@ flowchart TD
 * Overload operators only with natural semantics; C++20 `<=>` and defaulted comparisons simplify implementing ordering.
 * Implement `operator<<` and `operator>>` as **free functions** that call member functions and integrate with stream state correctly.
 
----
 
 ## 7. Study Hints
 
@@ -604,7 +589,6 @@ flowchart TD
   * Add Catch2 tests that verify `operator==`, `<`, and `<=>` behave as expected.
   * Add tests for reading and printing your class.
 
----
 
 ## 8. Extensions / Further Concepts
 
@@ -619,11 +603,13 @@ Week 5 is the foundation for more advanced topics:
 
 A solid grasp of class structure, invariants, and operators from this week is essential for building robust, idiomatic C++ code later. 
 
----
 
 ## 9. References & Literature (IEEE)
 
-- [1] ISO/IEC, *Programming Languages — C++ (ISO/IEC 14882:2020)*, International Organization for Standardization, 2020.
-- [2] B. Stroustrup, *The C++ Programming Language*, 4th ed., Addison-Wesley, 2013.
-- [3] N. M. Josuttis, *The C++ Standard Library: A Tutorial and Reference*, 2nd ed., Addison-Wesley, 2012.
-- [4] Lecture slides “Modern and Lucid C++ for Professional Programmers – Week 5 – Classes and Operators”, OST – Ostschweizer Fachhochschule, HS2025. 
+[1] ISO/IEC, *Programming Languages — C++ (ISO/IEC 14882:2020)*, International Organization for Standardization, 2020.
+
+[2] B. Stroustrup, *The C++ Programming Language*, 4th ed., Addison-Wesley, 2013.
+
+[3] N. M. Josuttis, *The C++ Standard Library: A Tutorial and Reference*, 2nd ed., Addison-Wesley, 2012.
+
+[4] Lecture slides “Modern and Lucid C++ for Professional Programmers – Week 5 – Classes and Operators”, OST – Ostschweizer Fachhochschule, HS2025. 
