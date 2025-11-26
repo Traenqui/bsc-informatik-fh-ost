@@ -64,7 +64,7 @@ And four **general syntaxes**:
 
 Different combinations of **context + syntax + type** give different semantics.
 
-**Visualization (Mermaid):**
+**Visualization:**
 
 ```mermaid
 flowchart TD
@@ -398,7 +398,7 @@ So:
 * `rudolf.name == "Rudolf"`
 * `rudolf.age == 42`
 
-**Visualization (Mermaid):**
+**Visualization:**
 
 ```mermaid
 flowchart TD

@@ -345,7 +345,7 @@ You’re asked: for a 28×28 input, `Conv2D` with 10 filters of size 3×3, strid
 ]
 (You can practice this as homework.)
 
-**Visualisation (Mermaid): CNN pipeline**
+**Visualisation: CNN pipeline**
 
 ```mermaid
 flowchart LR

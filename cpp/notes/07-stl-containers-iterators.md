@@ -75,7 +75,7 @@ The goal: pick the **right container** and understand what your iterators can an
   * Count + value: `std::list<int> l(5, 42);`
   * Iterator range: `std::deque<int> q{cbegin(v), cend(v)};` 
 
-**Visualization (Mermaid):**
+**Visualization:**
 
 ```mermaid
 flowchart TD

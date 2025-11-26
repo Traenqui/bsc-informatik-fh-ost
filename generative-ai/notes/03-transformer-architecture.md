@@ -81,7 +81,7 @@ According to the large diagram on **page 2**, the encoder pipeline looks like th
 6. **Dropout + Output**
    After $N$ blocks, outputs are passed to a final linear layer and softmax for prediction.
 
-**Visualisation (Mermaid):**
+**Visualisation:**
 
 ```mermaid
 flowchart LR
@@ -147,7 +147,7 @@ $$
 
 Having several heads allows the model to focus on **different aspects** simultaneously (e.g. subject–verb relations vs. adjective–noun connections).
 
-**Visualisation (Mermaid):**
+**Visualisation:**
 
 ```mermaid
 flowchart LR

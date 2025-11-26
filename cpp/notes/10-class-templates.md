@@ -343,7 +343,7 @@ Notes:
 * No `typename` needed here; nothing is dependent on template parameters (there are none).
 * The specialisation can behave **completely differently** from the primary template.
 
-**Mermaid: primary vs specialisations**
+**primary vs specialisations**
 
 ```mermaid
 classDiagram
@@ -624,7 +624,7 @@ Notes:
 * We use `std::advance` over `begin(theSack)` to support **any** container with at least forward iterators, not just `std::vector`.
 * The `= std::vector` default preserves existing `Sack<T>` use.
 
-**Mermaid sketch:**
+**sketch:**
 
 ```mermaid
 classDiagram

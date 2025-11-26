@@ -71,7 +71,7 @@ At OST, this lecture is part of the **Bachelor Artificial Intelligence** and aim
   * AI engineering topics: LLMOps, application engineering, tool-calling, agents.
 * Emphasis on **intuition over heavy math** and **hands-on projects**.
 
-**Visualisation (Mermaid): overall course view**
+**Visualisation: overall course view**
 
 ```mermaid
 flowchart LR
@@ -183,7 +183,7 @@ flowchart LR
   * **Libraries**: `transformers`, `datasets`, `tokenizers`.
 * Students can explore models by task, language, license, and read **model cards** (intended use, training data, limitations). 
 
-**Visualisation (Mermaid): foundation model pipeline**
+**Visualisation: foundation model pipeline**
 
 ```mermaid
 flowchart LR
@@ -281,7 +281,7 @@ Key properties of latent space:
   2. Decode (z) into the original space (image, text, etc.).
 * Sampling must include randomness; otherwise the model would always produce the same output.
 
-**Visualisation (Mermaid): generative process**
+**Visualisation: generative process**
 
 ```mermaid
 flowchart LR

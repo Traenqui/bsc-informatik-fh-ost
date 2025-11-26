@@ -99,7 +99,7 @@ private:
 
 * Only difference: default visibility (`class` = private, `struct` = public). Otherwise identical.
 
-**Visualisation (Mermaid):**
+**Visualisation:**
 
 ```mermaid
 classDiagram
@@ -483,7 +483,7 @@ auto readDate() -> Date {
 
 This pattern is the recommended way to connect classes with I/O while keeping parsing logic inside the class.
 
-**Visualisation (Mermaid):**
+**Visualisation:**
 
 ```mermaid
 flowchart TD
