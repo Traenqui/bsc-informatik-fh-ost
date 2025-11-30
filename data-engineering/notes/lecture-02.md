@@ -161,7 +161,7 @@
   em.getTransaction().commit();
   ```
 
-* Isolation Level: standardmäßig `READ_COMMITTED`
+* Isolation Level: standardmässig `READ_COMMITTED`
 
 * Locking:
 
@@ -172,7 +172,7 @@
 
 ## Detached Entities und Merge
 
-* Detached: außerhalb des Persistence Contexts
+* Detached: ausserhalb des Persistence Contexts
 * Änderungen werden via `merge()` in neuen Context übertragen
 * Wichtig: Version und ID nicht manuell ändern
 * `merge()` gibt eine **managed copy** zurück
@@ -190,7 +190,7 @@
 
 ### Nachteile
 
-* Große Lernkurve (API, Konzepte, Verhalten)
+* Grosse Lernkurve (API, Konzepte, Verhalten)
 * Native SQL manchmal dennoch nötig
 * Boilerplate-Code (Abhilfe: Lombok)
 

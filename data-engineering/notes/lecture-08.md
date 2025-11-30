@@ -57,7 +57,7 @@
 
 ## 4. Logische vs. Physische Optimierung
 
-* **Logisch**: ohne Kenntnis von DB-Größe/Statistiken
+* **Logisch**: ohne Kenntnis von DB-Grösse/Statistiken
 * **Physisch**: unter Einbezug von Indexen und Systemstatistiken
 * Ziel: Minimale **geschätzte Kosten**
 
@@ -68,7 +68,7 @@
 | Kostenart             | Beschreibung            |
 | --------------------- | ----------------------- |
 | Kommunikationskosten  | Datenübertragungsmenge  |
-| CPU-Berechnungskosten | je nach Tupelgröße      |
+| CPU-Berechnungskosten | je nach Tupelgrösse      |
 | I/O-Kosten            | Seitenzugriffe          |
 | Speicherkosten        | Nutzung von RAM, Puffer |
 

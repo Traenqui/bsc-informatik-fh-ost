@@ -70,7 +70,7 @@ CREATE INDEX <name> ON <table(column)> USING btree;
 DROP INDEX <name>;
 ```
 
-PostgreSQL nutzt standardmäßig `btree`, `ASC`, `NULLS FIRST`.
+PostgreSQL nutzt standardmässig `btree`, `ASC`, `NULLS FIRST`.
 
 ---
 

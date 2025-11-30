@@ -88,7 +88,7 @@
 ## 7. Partitionierung in der Praxis
 
 * Strategien: Hash, Range, Composite, Reference
-* Ziel: gleichmäßige Lastverteilung
+* Ziel: gleichmässige Lastverteilung
 * Einschränkungen: Shard-Key ist fix
 * Beispiel (PostgreSQL):
 

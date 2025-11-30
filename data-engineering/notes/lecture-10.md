@@ -19,7 +19,7 @@
 
 ### Entstehung
 
-* Web-2.0-Anwendungen (2000er Jahre): große Datenmengen, hohe Verfügbarkeit, horizontale Skalierung
+* Web-2.0-Anwendungen (2000er Jahre): grosse Datenmengen, hohe Verfügbarkeit, horizontale Skalierung
 * Problem: RDBMS = schwer skalierbar, Single Point of Failure
 
 ### Begriffsdefinition
@@ -164,7 +164,7 @@ db.orders.aggregate([
 
 | Embedding                         | Referencing                     |
 | --------------------------------- | ------------------------------- |
-| One-to-One, One-to-Few            | Many-to-Many, große Hierarchien |
+| One-to-One, One-to-Few            | Many-to-Many, grosse Hierarchien |
 | Schnell beim Lesen                | Speicher- & Performance-sparend |
 | Gefahr unkontrollierten Wachstums | Erfordert zusätzliche Abfragen  |
 
