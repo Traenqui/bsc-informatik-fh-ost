@@ -18,3 +18,5 @@ Thumbs.db
 *.jpeg
 _ost
 .devpod-internal
+
+build/
