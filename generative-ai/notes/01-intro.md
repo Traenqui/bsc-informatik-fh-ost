@@ -1,367 +1,367 @@
-# Generative AI - Week 1: Introduction
+# Generative AI Week 1: Introduction — Generative AI
 
 ## Overview
 
-- **Topic of the session:** Introduction to Generative AI & AI Engineering
-- **Lecturer:** Mitra Purandare
-- **Learning objectives:**
-  - Understand what Generative AI is and why it is considered a revolutionary technology.
-  - Get an overview of the course structure and the role of an AI engineer.
-  - Distinguish supervised, unsupervised and self-supervised learning.
-  - Understand the basics of large language models (LLMs), transformers and RLHF.
-  - Grasp the idea of foundation models and the Hugging Face ecosystem.
-  - Be aware of privacy, bias, fairness and regulation in Responsible AI.
-  - Get an intuitive understanding of generative models, latent space and sampling.
+- **Topic of the unit:** Course kickoff + What is Generative AI? + Why AI Engineering matters + First key concepts (self-supervision, RLHF, latent space, sampling)
+- **Instructor:** Mitra Purandare
+- **Learning goals (what you should be able to explain after Week 1):**
+  - What “Generative AI” means and what it can create (text, images, audio, code, …).
+  - What the course focuses on (leveraging existing models vs. building from scratch).
+  - What “AI Engineering” is and why it became important after ~2020 (scale + foundation models).
+  - The difference between **supervised**, **unsupervised**, and **self-supervised** learning.
+  - Why LLMs (e.g., ChatGPT) are powerful (autoregression, transformers, RLHF).
+  - Core generative-model intuition: **data distributions**, **latent space**, **sampling**.
+  - First awareness of responsible AI issues (privacy, bias, regulation, hallucinations).
 
 ## 1. Introduction / Context
 
-Artificial intelligence is “turning the world upside down” – from football to cooking shows to everyday tools like Grammarly or chatbots.
+The slides start with the message that **AI is already changing everyday life** (examples shown include altered/AI-generated images and familiar consumer tools). The motivating question is essentially:
 
-At OST, this lecture is part of the **Bachelor Artificial Intelligence** and aims to prepare you to become an **AI engineer**: someone who builds applications around powerful, pre-trained models instead of training everything from scratch. The focus is **hands-on**: using existing models, adapting them, evaluating generated data and building applications around them.
+- AI is here — **but who shapes it, and how?**
+- The course positions students to help shape it: **“The future needs you!”**
 
-## 2. Key Terms and Definitions
+## 2. Administrative (Course Organization)
 
-| Term                                   | Definition                                                                                                                                                                                                       |
-| -------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Artificial Intelligence (AI)**       | Broad field of building systems that perform tasks that typically require human intelligence (perception, language, decision-making, etc.).                                                                      |
-| **Generative AI**                      | AI systems that **create new content** (text, images, audio, video, code, music, strategies, etc.) by learning patterns from existing data rather than only classifying or predicting labels.                    |
-| **Generative model**                   | A machine learning model that learns a **probability distribution** over data and can sample from it to generate new examples similar to the training set.                                                       |
-| **Discriminative model**               | A model that learns to **distinguish** between classes, e.g. “car vs. not-car”, by directly modeling (P(y\mid x)). It outputs labels or probabilities for predefined classes.                                    |
-| **Supervised learning (SL)**           | Learning with **labelled data** where each input (x) has a target label (y). Example: binary or multi-class image classification.                                                                                |
-| **Unsupervised learning (UL)**         | Learning from **unlabelled data**; goal is to discover structure (e.g. clustering) or lower-dimensional representations without explicit labels.                                                                 |
-| **Self-supervised learning (SSL)**     | Uses unlabelled data but derives **pseudo-labels from the data itself** (e.g. predict the next word in a sentence). Bridges supervised and unsupervised learning and solves the labelling bottleneck.            |
-| **Language Model (LM)**                | Model that learns the **rules and patterns of language**, converting words to vector representations and predicting the next (or missing) token in a sequence.                                                   |
-| **Large Language Model (LLM)**         | Very large language model trained on massive text corpora, typically autoregressive transformers that can perform a wide range of tasks (chat, summarization, translation, coding, etc.). ChatGPT is an example. |
-| **RLHF**                               | _Reinforcement Learning with Human Feedback_: human evaluators rank or score model outputs; the model is then fine-tuned to produce high-reward responses.                                                       |
-| **Multimodal AI**                      | Models that can process and relate **multiple modalities**, e.g. text + images, or text + audio.                                                                                                                 |
-| **Foundation model**                   | Large model trained (typically self-supervised) on **broad and diverse data**, which can be adapted to many downstream tasks. Examples: BERT, DALL·E, GPT-3.                                                     |
-| **AI Engineering**                     | The process of **building applications** with readily available models, including tooling, deployment, LLMOps and model-as-a-service.                                                                            |
-| **Latent space**                       | A lower-dimensional, **hidden representation** of data that captures abstract features and relationships (e.g. ellipse parameters (a, b) instead of raw pixels).                                                 |
-| **Sampling**                           | Drawing random samples from the **learned probability distribution** of a generative model to obtain new data points.                                                                                            |
-| **Probability density function (PDF)** | A function that describes how likely different values of a continuous random variable are; generative models aim to approximate the unknown data PDF.                                                            |
+**Rules & regulations (key points):**
 
-## 3. Main Content
+- **Lecture day:** Tuesday
+- **Exercises:** also Tuesday
+- **Format:** no strict separation between lecture/exercises (mixed format)
+- **Timing:** flexible blocks (≈ 45×4 minutes), depends on content; not “4 lectures (2+2)”
+- **Grading (50/50):**
+  - **GenAI challenge** in the second half (**50%**), described as _Agentic AI_ for a company called **HWT**
+  - **Written exam** at the end (**50%**), **1-page notes allowed**
 
-### 3.1 Course organisation & AI engineer perspective
+- **Platform / compute:** JupyterHub with GPUs (DGX-1 from Nvidia) + Microsoft Azure
+- **Tech stack mentioned:** PyTorch, LangChain, Python, Docker, Jupyter, LangGraph
+- **Support:** assistant = instructor (“myself”)
 
-**Administrative setup**
+**Course platform:** Moodle link is provided in slides.
 
-- Lecture & exercises both on Tuesday, flexible 4×45 minutes; no strict lecture/exercise separation.
-- Assessment:
-  - **GenAI challenge** in the second half of the course (Agentic AI for a company called HWT) – 50% of grade.
-  - **Written exam** at the end – 50% (one page of notes allowed).
+## 3. What is Generative AI?
 
-- Platforms & tools:
-  - JupyterHub with GPUs (Nvidia DGX-1, Azure).
-  - Technologies: PyTorch, LangChain, Python, Docker, Jupyter, LangGraph.
+### 3.1 Core definition (practical)
 
-**Goal of the course: become an AI engineer**
+Generative AI is framed as AI that **creates new content** (not just classifying or detecting). Examples listed:
 
-- Focus on **using pre-trained models** rather than training from scratch.
-- Learn:
-  - LLMs, diffusion models, RNNs, autoencoders, GANs.
-  - Evaluation metrics (BLEU, ROUGE, benchmarks like MMLU).
-  - Transfer learning: continual pre-training, fine-tuning, prompt engineering, quantization.
-  - AI engineering topics: LLMOps, application engineering, tool-calling, agents.
+- Create **text**
+- Create **images**
+- Create **lyrics**
+- Compose **music**
+- Create **gaming strategies**
 
-- Emphasis on **intuition over heavy math** and **hands-on projects**.
+A slide also includes a typical definition (via “Let us ask ChatGPT”): generative AI learns patterns from data and produces new outputs resembling training examples, often using **GANs, VAEs, Transformers**.
 
-**Visualisation: overall course view**
+### 3.2 “Rise of Generative AI” (examples of systems)
+
+The lecture gives a snapshot of popular tools and modalities:
+
+- Chatbots: ChatGPT
+- Image generation/transformation: DALL·E, Midjourney
+- Deepfakes
+- Speech: Whisper
+- Writing assistants: Grammarly
+- Music: MuseNet
+- Typical tasks: summarization, text-to-image, image enhancement, style/subject injection (“your cat dressed as an astronaut”), meeting transcription, synthetic speech in your voice style
+
+## 4. What will we learn? (Course map)
+
+The course is organized into four pillars: **Models, Evaluation, Transfer learning, AI Engineering**.
+
+### 4.1 Models (what kinds appear later)
+
+- LLMs
+- Diffusion models
+- RNNs
+- Autoencoders / VAEs
+- GANs
+
+### 4.2 Evaluation
+
+- BLEU score
+- ROUGE
+- Benchmarks like MMLU
+
+### 4.3 Transfer learning (adaptation skills)
+
+- Continual pre-training
+- Fine-tuning
+- Prompt engineering
+- Quantization
+
+### 4.4 AI Engineering (building with models)
+
+- LLMOps
+- Application engineering around models
+
+### 4.5 Hands-on philosophy
+
+Emphasis is explicitly **not** on training giant models from scratch, and **not** on heavy math. Instead:
+
+- Use **pre-trained models**
+- Adapt them to your needs
+- Generate new data with them
+- Evaluate output quality
+- Discuss ethical/social issues
+- Engineer applications around an “ever-exploding” model ecosystem
+
+**Rough plan (topics list):** latent space, DNN basics, transformers, LLMs, prompt/context engineering, RAG, evaluation, tool calling, agents, fine-tuning, vision LMs, AE/VAE, GANs, diffusion.
+
+**Course “spice” (guest talks / projects):** examples include Figma→HTML, LLM-based game, Geoguesser, AI-driven podcasts on Swiss votes, AI tutor, case note generation, avatar generation for healthy eating.
+
+## 5. AI Engineering and Foundation Models
+
+### 5.1 Why “AI Engineering” is booming (post-2020 framing)
+
+Key idea: **scale changed the game**.
+
+- Demand for AI applications increased
+- Barrier to entry decreased (you can build on existing models)
+- AI engineering is described as a fast-growing discipline: building apps with readily available models
+- Training LLMs needs data/compute/talent → leads to “model-as-a-service” and leverage
+
+### 5.2 “Attention is all you need” (Transformer milestone)
+
+A slide references the 2017 transformer paper and shows the standard transformer block diagram.
+Interpretation: Transformers are a key enabling architecture behind modern LLMs.
+
+**Visual (simplified transformer stack):**
+
+```mermaid
+flowchart TD
+  A[Input tokens] --> B[Token + Positional Embedding]
+  B --> C[Transformer Blocks x N]
+  C --> D[Linear layer]
+  D --> E[Softmax]
+  E --> F[Next-token probabilities]
+```
+
+### 5.3 Multimodal systems
+
+Multimodal AI combines multiple data types (example given: text + images).
+
+### 5.4 Foundation models (definition and implication)
+
+A “foundation model” is described as a model **pre-trained on broad, diverse data/tasks** and later adapted to many downstream tasks.
+
+**Visual (conceptual pipeline):**
 
 ```mermaid
 flowchart LR
-  DNN[DNN basics] --> LLM[Transformers & LLMs]
-  LLM --> RAG[RAG & Prompt/Context Eng.]
-  RAG --> AGENTS[Tool Calling & Agents]
-  LLM --> GENMODELS[AE / VAE / GANs / Diffusion]
-  GENMODELS --> LATENT[Latent Space & Sampling]
-  LLM --> EVAL["Evaluation (BLEU, ROUGE, Benchmarks)"]
-  EVAL --> APP[AI Engineering & Applications]
+  D["Broad data\n(text, images, speech, ...)"] --> T["Training at scale\n(self-supervision)"]
+  T --> FM[Foundation Model]
+  FM --> A1[Task: Q&A]
+  FM --> A2[Task: Sentiment]
+  FM --> A3[Task: Captioning]
+  FM --> A4[Task: Instruction Following]
 ```
 
-### 3.2 What is Generative AI? – Intuition and applications
+### 5.5 “Moving target” mindset
 
-**Definition (incl. ChatGPT’s answer)**
+SOTA models change fast. The course deliberately emphasizes **fundamentals + evaluation + navigation skills**, so you can:
 
-- Generative AI can create **new content** – text, images, music, code, designs – by learning patterns from existing data.
-- It does more than just classify; it **generates outputs that resemble training examples**.
-- Common model families:
-  - GANs (Generative Adversarial Networks)
-  - VAEs (Variational Autoencoders)
-  - Transformers / LLMs
+- navigate the “dense jungle” of models,
+- evaluate what fits your need,
+- build applications around them.
 
-**Typical use cases**
+## 6. Learning paradigms refresher (SL vs UL vs SSL)
 
-- Text: chatbots, story and lyrics generation, summarising news articles, generating gaming strategies.
-- Images: text-to-image (DALL·E, Midjourney), style transfer, upscaling, “your cat as an astronaut”.
-- Audio: speech transcription (Whisper), synthetic speech, music generation (e.g. MuseNet).
-- Productivity: grammar assistants (Grammarly), code generation, meeting transcription.
+### 6.1 Supervised Learning (SL)
 
-**Rise of generative AI**
+The slides ask: “What is supervised learning? What are the 4 important elements? What is a major bottleneck?”
+From the examples, SL is presented as:
 
-- Rapid emergence of **chatbots**, **image generation**, **music generation** and general **multimodal systems**.
+- You have **inputs** (e.g., images)
+- You have **labels** (human-provided targets)
+- You train a **discriminative model** to predict labels (e.g., car vs not-car)
+- You evaluate and iterate
 
-### 3.3 Generative language models & self-supervised learning
+**Example: binary classification (“car or not a car?”):**
 
-#### Classical supervised learning recap
+- Need labeled images (car=1, not-car=0)
+- Model learns features (wheels, wings, etc.) to separate classes
 
-- Binary and multi-class classification examples:
-  - “Car vs. not-car” with labelled images (y \in {0,1}).
-  - Fashion-MNIST with 10 clothing categories.
+**Example: multi-class classification (Fashion-MNIST):**
 
-- Limitations:
-  - Requires **labelled data**, which is expensive and time-consuming to create.
-  - Example: detailed image segmentation costs several dollars per image.
+- 10 clothing classes
+- Train model so the correct class has high probability and others low
 
-#### Language models: basics
+### 6.2 Unsupervised Learning (UL)
 
-- A (large) language model:
-  - Converts words/tokens into numerical vectors (embeddings).
-  - Learns how words, expressions and sentences fit together.
-  - Is trained to predict the **next word** (or a missing word) in a sentence.
+Slides prompt: “What is unsupervised learning? What methods have you seen so far?”
+Key distinction emphasized later: UL does **not require labels at all**, and often aims at structure discovery (e.g., clustering).
 
-#### Self-supervised learning (SSL)
+### 6.3 Self-supervised Learning (SSL) (crucial for language models)
 
-- Uses unlabelled text but generates labels from the sequence itself.
+The lecture motivates SSL with: **labeled data is expensive**.
+Language modeling reframes the problem so that labels come “for free” from the data itself:
 
-- Example target sequences:
+- Train the model to **predict the next word/token**
+- Any text sequence can generate (input, target) pairs automatically
 
-  ```text
-  SOS Generative -> target: AI
-  SOS Generative AI -> target: is
-  SOS Generative AI is -> target: a
-  ...
-  ```
+**Token prediction sketch (from slides):**
+Input: “SOS Generative AI is a …” → Target: next token
+Repeated over massive unlabeled text corpora.
 
-- Any piece of text becomes **input–target pairs** without human annotation.
+**Important clarification:** SSL ≠ UL (they are often confused). Slides state that since ~2019 they are treated as different: SSL uses automatically constructed labels; UL doesn’t use labels.
 
-- SSL is not the same as “pure” unsupervised learning – it has prediction targets, just not human-labelled ones.
+## 7. LLMs and RLHF (why ChatGPT feels “helpful”)
 
-#### Why is ChatGPT so powerful?
+### 7.1 Why ChatGPT is powerful (as presented)
 
-- Trained on **huge amounts of text** from books, websites and other sources.
-- Uses **autoregressive transformers** (GPT-3/GPT-4).
-- Further trained with **RLHF**:
-  - Humans rate possible outputs (e.g. for “What is the capital of Switzerland?”).
-  - A reward model learns which answers score higher (e.g. “Bern” > “Is it Bern or Zurich?” > “Sorry, I am hungry”).
-  - The LLM is fine-tuned to maximise this reward.
+- Trained on huge amounts of text (books, websites, etc.)
+- Autoregressive (predicts next token)
+- Uses deep neural networks
+- Uses (Generative Pre-trained) transformer models
+- “InstructGPT: RLHF”
+- Further trained with human feedback via reinforcement learning
 
-### 3.4 Foundation models & Hugging Face ecosystem
+### 7.2 RLHF intuition (ranking responses)
 
-#### AI post-2020: scale & model-as-a-service
+Slides show a toy ranking table: given a prompt like “Is it Bern or Zurich?”, different answers get different scores; helpful, correct answers score high, unhelpful ones score 0.
 
-- Demand for AI applications increased dramatically.
-- Barriers to entry dropped because powerful models are available as services.
-- Consequences:
-  - Large foundation models (e.g. GPT-3, DALL·E, BERT) trained on broad data.
-  - Developers focus on **using** these models via APIs or libraries instead of training them from scratch.
+**Conceptual RLHF loop:**
 
-#### Foundation models
+```mermaid
+flowchart TD
+  P[Prompt] --> M[Model generates candidates]
+  M --> H[Human / preference model ranks]
+  H --> R[Reward signal]
+  R --> U[Update model to prefer high-reward answers]
+  U --> M
+```
 
-- Defined as models **pre-trained on large and diverse data**, adaptable to many tasks (downstream fine-tuning or prompting).
+## 8. Hugging Face ecosystem (tooling for engineers)
 
-#### Hugging Face
+The slides introduce Hugging Face as a platform/community for open-source ML (especially transformers/LLMs), offering:
 
-- Platform and community for open-source ML, especially transformers and LLMs.
-  - **Models**: text, vision, audio, multimodal.
-  - **Datasets**: accessible and easily loadable.
-  - **Spaces**: share demos and apps.
-  - **Libraries**: `transformers`, `datasets`, `tokenizers`.
+- Pretrained models (NLP, vision, audio, multimodal)
+- Datasets
+- APIs/libraries for integration
+- Spaces (demos/apps)
+- Collections
+- Inference Providers
 
-- Students can explore models by task, language, license, and read **model cards** (intended use, training data, limitations).
+Key libraries named:
 
-**Visualisation: foundation model pipeline**
+- `transformers`, `datasets`, `tokenizers`
+
+They also highlight:
+
+- Model hub (model cards: intended use, training data, limitations, example inference)
+- Dataset hub and loading via `load_dataset("squad")`
+- Learning resources (HF course, docs, spaces)
+
+## 9. Responsible use of AI (first risks)
+
+### 9.1 Privacy & consent
+
+- Synthetic images from small sets of personal photos raise consent issues
+- Deepfake risk and potential harm
+- Question raised: using private data for training?
+
+### 9.2 Bias & fairness
+
+- Training data contains biases
+- Models can inherit/amplify them
+- Example risk: stereotypical/discriminatory generated images
+- Need mitigation and ethical use
+
+### 9.3 Regulation & accountability
+
+Slides mention the need for oversight and list regulatory references (Swiss AI Act initiative/links, EU AI Act, GDPR).
+
+### 9.4 Hallucinations & responsibility
+
+A section title flags hallucinations as an issue requiring responsibility (introduced here, likely covered deeper later).
+
+## 10. Generative models (the math intuition without heavy math)
+
+### 10.1 What is a generative model?
+
+A generative model:
+
+- learns the **rules/relationships** between features (pixels, words, notes, …),
+- so we can **sample** to create new realistic data not seen before.
+
+### 10.2 Distribution view
+
+Training data points are samples from an **unknown underlying distribution**. Generative models aim to learn an approximation of this distribution and then **sample** from it.
+
+**Dice example (discrete):**
+
+- An “unfair dice” has an unknown probability distribution.
+- The model tries to learn that distribution to predict/produce likely outcomes.
+
+### 10.3 Representation learning and latent space
+
+Real-world data is high-dimensional and complex (images, faces, books, music). The slides introduce **latent space** as:
+
+- a hidden, compressed representation
+- where relationships are easier to model/manipulate
+
+Ellipse example:
+
+- Describe an ellipse via abstract features (e.g., axes `a` and `b`)
+- In latent space, manipulating `(a,b)` changes the decoded image (ellipse → circle if `a=b`, widen/shrink, etc.)
+
+**ASCII sketch (latent control idea):**
+
+```
+Latent vector z = (a, b)
+  a=b  -> circle
+  a>b  -> wide ellipse
+  a<b  -> tall ellipse
+Decode(z) -> image
+```
+
+### 10.4 Sampling (why outputs should vary)
+
+Generative models must not be deterministic “copy machines.” They include randomness:
+
+- Learn which regions of latent space are more likely
+- Sample random values according to the learned PDF
+- Decode back to data space
+
+**End-to-end pipeline (as a mental model):**
 
 ```mermaid
 flowchart LR
-  DATA["Large, diverse data (text, images, audio...)"]
-    --> PRETRAIN[Self-supervised pre-training]
-  PRETRAIN --> FM[Foundation Model]
-  FM --> ADAPT1[Fine-tuning / Continual pre-training]
-  FM --> ADAPT2[Prompt Engineering / RAG]
-  ADAPT1 --> APPS[Downstream Applications]
-  ADAPT2 --> APPS
+  X[Training data x] --> Enc[Encoder / representation]
+  Enc --> Z["Latent space z\n(learned distribution)"]
+  Z --> Samp["Sampling\n(randomness)"]
+  Samp --> Dec[Decoder / generator]
+  Dec --> Xnew[New sample x']
 ```
 
-### 3.5 Responsible use of AI
+## 11. Takeaways (Week 1)
 
-**Privacy & consent**
+- Generative AI is about **creating** new content by learning patterns from data.
+- The course trains you to become an **AI engineer**: build real applications using powerful pre-trained/foundation models.
+- Modern GenAI is driven by **scale**, **transformers**, and adaptation techniques (prompting, fine-tuning, etc.).
+- **Self-supervised learning** explains how LLMs train on massive unlabeled text (labels are created from the text itself).
+- **RLHF** is a key step that nudges LLMs toward more helpful, human-aligned responses.
+- Generative modeling revolves around **learning distributions**, using **latent spaces**, and producing variety via **sampling**.
+- Responsible AI concerns (privacy, bias, regulation, hallucinations) are part of the engineering reality.
 
-- Generative models can create synthetic images or data about individuals, raising questions about:
-  - Use of personal data **without consent**.
-  - Risk of **deepfakes**, misinformation, identity harm.
+## 12. Study hints (how to learn this week effectively)
 
-- Training on private data or scraping sensitive information raises legal and ethical concerns.
+- Be able to explain, in your own words:
+  - SL vs UL vs SSL (and why SSL is not “just UL”).
+  - What “latent space” means and why it’s useful.
+  - Why sampling is essential for generation.
+  - What RLHF is doing (ranking/optimizing for higher reward responses).
 
-**Bias & fairness**
+- Skim Hugging Face model cards once: get used to reading **intended use**, **limitations**, and **licenses**.
 
-- Training datasets can contain **systematic biases**.
-- Generative models may **inherit and amplify** these biases:
-  - Stereotypical images in text-to-image models.
-  - Biased language outputs (gender, race, profession, etc.).
+## 13. Sources & Literature (IEEE-style)
 
-- We need mitigation strategies and fairness-aware evaluation.
+[1] A. Vaswani _et al._, “Attention Is All You Need,” in _Proc. NeurIPS_, 2017.
 
-**Regulation for Responsible AI**
+[2] R. Bommasani _et al._, “On the Opportunities and Risks of Foundation Models,” _arXiv preprint arXiv:2108.07258_, 2021.
 
-- Growing recognition of:
-  - **Risks** associated with generative models.
-  - Need for **regulatory oversight**, **transparency**, **accountability**.
+[3] L. Ouyang _et al._, “Training language models to follow instructions with human feedback,” _arXiv preprint arXiv:2203.02155_, 2022.
 
-- Examples mentioned:
-  - Swiss AI Act.
-  - EU AI Act.
-  - Data protection (e.g. GDPR-related resources).
+[4] D. P. Kingma and M. Welling, “Auto-Encoding Variational Bayes,” _arXiv preprint arXiv:1312.6114_, 2013.
 
-### 3.6 Generative models: probability, latent space, sampling
-
-#### What is a generative model?
-
-- Learns the **rules** governing complex relationships between features (pixels, words, notes, etc.).
-- Once trained, we can **sample** from the model to create new data points that _look like_ they came from the original dataset:
-  - e.g. generating new car images after training on many car photos.
-
-#### Probabilistic view
-
-Training data are assumed to come from an unknown data distribution (p*{\text{data}}(x)).
-The generative model tries to approximate this distribution with (p*\theta(x)) and then samples from it.
-
-**Mathematical sketch (LaTeX):**
-
-$$
-\text{Goal: } p_\theta(x) \approx p_{\text{data}}(x)
-\quad\Rightarrow\quad x_{\text{new}} \sim p_\theta(x)
-$$
-
-Dice example:
-
-- Rolling a (possibly unfair) dice: outcomes follow some unknown distribution.
-- The model observes many rolls and learns an approximation (p\_\theta); then it can generate new plausible outcomes.
-
-#### Representation learning & latent space
-
-- Real-world data (digits, faces, music, books) lie in a **high-dimensional, complex space** and follow intricate distributions.
-- Representation learning finds **abstract features** to describe each sample.
-- Example with ellipses: instead of raw pixels, describe each ellipse by parameters (a, b) (axes).
-  - This yields a **lower-dimensional latent space** of pairs ((a,b)).
-
-Key properties of latent space:
-
-- Each point corresponds to some valid (or near-valid) data instance.
-- We can manipulate properties in latent space:
-  - Make an ellipse into a circle by enforcing (a = b).
-  - Change size, orientation, shape smoothly.
-
-- For **images**, latent vectors map to images; for **text**, they map to sequences of tokens.
-
-#### Sampling from latent space
-
-- The generative model learns which regions of latent space are **likely** given the training data.
-- To generate:
-  1. Sample a latent vector (z) from the learned PDF.
-  2. Decode (z) into the original space (image, text, etc.).
-
-- Sampling must include randomness; otherwise the model would always produce the same output.
-
-**Visualisation: generative process**
-
-```mermaid
-flowchart LR
-  X[Training data x] --> ENC[Encoder / Representation learning]
-  ENC --> Z[Latent space z]
-  Z --> PDF["Learn PDF p(z)"]
-  PDF --> SAMPLE["Sample z~p(z)"]
-  SAMPLE --> DEC[Decoder / Generator]
-  DEC --> XNEW[Generated data x_new]
-```
-
-## 4. Relationships and Interpretation
-
-- **Classical ML vs. Generative ML**:
-  - Classical supervised ML (discriminative) predicts labels from inputs.
-  - Generative models learn the **data distribution** itself and can create new samples.
-
-- **SSL as the bridge**:
-  - Uses unlabelled data but creates prediction targets internally – crucial for training large language models on web-scale text.
-
-- **Foundation models & AI engineering**:
-  - Foundation models are the “engines”; AI engineering is about **wiring them into products**: retrieval, tool calling, UX, evaluation and monitoring.
-
-- **Responsible AI as cross-cutting concern**:
-  - No matter how powerful the model, privacy, bias, safety and regulation must be considered throughout the lifecycle.
-
-## 5. Examples and Applications
-
-- **Text**
-  - Chatbots (e.g. ChatGPT), email drafting, tutoring systems, automated case notes, AI-driven podcasts for Swiss national votes.
-
-- **Vision & design**
-  - Figma-to-HTML conversion, avatar generation to encourage healthy eating, geoguesser-like applications with generative hints.
-
-- **Audio & music**
-  - Music generation models, synthetic speech in custom voice styles.
-
-- **Productivity**
-  - Summarising news, improving images, transcribing meetings, grammar & style correction.
-
-These examples illustrate how one **foundation model** can underpin many different applications with relatively small adaptations.
-
-## 6. Summary / Takeaways
-
-- **Generative AI** creates new content by learning from large datasets and sampling from learned probability distributions.
-- Modern systems rely heavily on **self-supervised learning** and **transformer-based language models** (LLMs).
-- **Foundation models** change the way we build systems: instead of training everything from scratch, we adapt and orchestrate large pre-trained models.
-- **AI engineering** is about building robust applications around these models (LLMOps, evaluation, tool-calling, agents).
-- Understanding **latent space** and **sampling** provides an intuitive picture of how generative models create realistic but new examples.
-- Responsible use is essential: issues of **privacy**, **bias**, **fairness** and **regulation** cannot be ignored.
-
-## 7. Study Tips
-
-- **Connect with prior knowledge**: review your understanding of basic ML (supervised vs unsupervised, neural networks). This will make generative concepts easier.
-- **Play with real systems**:
-  - Try chatGPT and other LLMs; observe how prompts change outputs.
-  - Experiment with image generators and note how text prompts control style/content.
-
-- **Use Hugging Face**:
-  - Browse model cards; run small demos on free Spaces.
-  - Look at example code to see typical inference pipelines.
-
-- **Think in terms of distributions & representations**:
-  - When you see a model “generate”, ask: _What distribution is it sampling from? What is its latent space?_
-
-- **Follow the moving target but don’t get overwhelmed**:
-  - Models will continue to evolve; focus on core concepts so you can understand and evaluate new models when they appear.
-
-## 8. Further Topics / Next Steps
-
-Later in the course (according to the rough plan) you will touch on:
-
-- DNN basics and transformer architectures.
-- Prompt engineering, context management and RAG.
-- Evaluation frameworks & benchmarks for generative models.
-- Tool calling and agentic AI systems.
-- Vision-language models and advanced generative architectures (AE/VAE, GANs, diffusion).
-
-You will also work on a **GenAI challenge** project, applying these concepts in a realistic, agentic AI scenario.
-
-## 9. References & Literature (IEEE style)
-
-_(Some entries are reconstructed from slide links and common sources.)_
-
-[1] A. Vaswani _et al._, “Attention Is All You Need,” in _Proc. Advances in Neural Information Processing Systems (NeurIPS)_, 2017.
-
-[2] R. Bommasani _et al._, “On the Opportunities and Risks of Foundation Models,” arXiv:2108.07258, 2021.
-
-[3] “Hugging Face – Models, Datasets, Spaces and Docs,” Hugging Face, accessed: 2025.
-
-[4] “The rise of generative AI and large language models,” Information Is Beautiful / LifeArchitect resources, accessed: 2025.
-
-[5] “Deepfake,” _Wikipedia_, available online, accessed: 2025.
-
-[6] Swiss Federal Council, “Swiss AI Act – Media Releases and Legal Framework,” accessed: 2025.
-
-[7] European Commission, “EU AI Act – Legal Framework for Artificial Intelligence,” accessed: 2025.
-
-[8] S. Ruder, “An overview of self-supervised learning,” blog and tutorial resources, accessed: 2025. (For conceptual background on SSL vs UL.)
-
-[9] M. Purandare, _Week 1: Introduction – Generative AI_, Lecture Slides, OST – Ostschweizer Fachhochschule, 16 Sep. 2025.
+[5] I. Goodfellow _et al._, “Generative Adversarial Nets,” in _Proc. NeurIPS_, 2014.

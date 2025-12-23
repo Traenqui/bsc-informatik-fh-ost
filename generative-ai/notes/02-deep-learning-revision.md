@@ -1,444 +1,259 @@
-# Generative AI - # Week 2: Deep Learning Revision
+# Generative AI Week 2: Deep Learning Revision
 
 ## Overview
 
-- **Topic of the unit:** Deep Learning Revision – from N-gram name generator to neural networks and CNNs
-- **Lecturer:** Mitra Purandare
-- **Learning goals:**
-  - Revisit the first-name generator and understand its limitations as an N-gram model.
-  - Learn how to use **neural networks** in PyTorch to model probability distributions.
-  - Understand **training of NNs**: loss, backprop, gradient descent, mini-batches, epochs, learning rate.
-  - Build name generators with NNs and an image classifier for digits (MNIST) with **CNNs**.
-  - Understand key NN elements: activation functions, loss functions, regularisation.
-  - Learn basics of **image representation**, **convolutions**, and **evaluation metrics** (accuracy, precision, recall, F1).
+- **Topic of the unit:** Revision of neural-network fundamentals (with PyTorch), improving the Week-1 name generator, and introducing CNNs + evaluation for image classification
+- **Instructor:** Mitra Purandare
+- **Learning goals (from slides):**
+  - Revise neural networks in PyTorch: neurons, MLPs, activation functions, loss functions, parameters
+  - Understand training (gradient descent, mini-batches, learning rate, train/val/test split)
+  - Hands-on: export models, load them, call from a simple UI
+  - Understand “in-the-wild” difficulties + augmentation to improve robustness
 
 ## 1. Introduction / Context
 
-Week 1 introduced **generative models**, latent space, sampling and a simple character-level **bigram** model that generates Swiss first names from counts. In Week 2, we ask:
+Week 2 builds directly on Week 1’s **SwissNameGen** (a character-level bigram model using explicit counts) and asks:
+**Can we improve the generator by replacing the explicit probability table with a neural network?**
 
-> _Can we improve our first name generator?_
+The agenda spans: improving the name generator, modeling the PDF with NNs, training, name generation, NN elements not used, what images are, why not to use MLPs for images, convolution/CNNs, and evaluation.
 
-We move from **count-based N-grams** to **neural networks** that learn the probability distribution of the next character. Then we extend these ideas to **images**, constructing a digit classifier for MNIST, and finish with **evaluation metrics** and **regularisation**.
+## 2. Central Terms and Definitions
 
-## 2. Key Terms and Definitions
+| Term                                   | Definition (as used in Week 2)                                                                               |
+| -------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| **N-gram**                             | A sequence model using context of length _N-1_ characters/tokens (e.g., bigram uses 1 previous char).        |
+| **PDF (probability density function)** | Here used informally as “probability distribution” over next characters / latent features learned from data. |
+| **One-hot vector**                     | Encoding of a categorical value as a vector with a single 1 at the category index.                           |
+| **Logits**                             | Raw (unnormalized) model outputs before softmax.                                                             |
+| **Softmax**                            | Converts logits into a probability distribution over classes.                                                |
+| **Cross-entropy / NLL**                | Loss for classification: negative log probability of the true class.                                         |
+| **Epoch**                              | One full pass through the training dataset.                                                                  |
+| **SGD / Batch GD / Mini-batch GD**     | Different gradient-descent update regimes depending on how much data contributes to each update.             |
+| **Convolution**                        | Sliding a filter over an image, multiply+sum locally to produce feature maps.                                |
+| **Stride / Padding**                   | Stride = step size of filter movement; padding = add border pixels to control output size.                   |
+| **Precision / Recall / F1**            | Metrics beyond accuracy; F1 is harmonic mean of precision and recall.                                        |
 
-| Term                         | Definition                                                                                                                    |
-| ---------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
-| **N-gram**                   | Sequence of (N) consecutive tokens (characters or words) used to model local context, e.g. bi-grams, tri-grams.               |
-| **Neuron**                   | Basic unit in a neural network computing ($y = f(\sum_i w_i x_i + b)$), where (f) is a non-linear **activation function**.    |
-| **Activation function**      | Non-linear function applied to neuron output, e.g. ReLU, Sigmoid, Tanh. Adds non-linearity so NNs can model complex patterns. |
-| **DNN / MLP**                | Deep Neural Network / Multi-Layer Perceptron – several fully connected layers stacked to form a deeper model.                 |
-| **One-hot encoding**         | Vector representation with 1 at the index of a category and 0 elsewhere, e.g. for 4 chars: `a→1000, b→0100, c→0010, d→0001`.  |
-| **Logits**                   | Raw, unnormalised outputs of a NN before applying softmax.                                                                    |
-| **Softmax**                  | Function that converts logits to class probabilities: ($p_k = \frac{e^{o_k}}{\sum_{j=1}^m e^{o_j}}$).                         |
-| **Cross-entropy loss**       | Negative log-likelihood of the true class; for class $(k): (L = -\log p_k)$ . Used for classification.                        |
-| **Gradient descent**         | Optimisation algorithm that updates parameters in direction of negative gradient of loss.                                     |
-| **Epoch**                    | One full pass over the entire training data.                                                                                  |
-| **Batch / mini-batch / SGD** | Training variants using all samples, subsets, or single samples for each gradient update.                                     |
-| **Hyperparameters**          | Config values not learned from data (learning rate, batch size, number of layers/neurons, regularisation strength, etc.).     |
-| **Convolution**              | Operation sliding a small **filter/kernel** over an image and computing local weighted sums to detect patterns.               |
-| **Feature map**              | Output of a convolution filter over the input image.                                                                          |
-| **Stride**                   | Step size of the convolution filter while sliding over the input.                                                             |
-| **Padding**                  | Adding borders around the input so the output size is controlled (e.g. “same” size).                                          |
-| **Pooling**                  | Downsampling (e.g. MaxPool2D) that reduces spatial size and keeps strongest activations.                                      |
-| **Accuracy**                 | ($(TP + TN)/n$), proportion of correct predictions.                                                                           |
-| **Precision**                | ($TP / (TP+FP)$), how many predicted positives are truly positive.                                                            |
-| **Recall**                   | ($TP / (TP+FN)$), how many true positives are found.                                                                          |
-| **F1 score**                 | Harmonic mean of precision and recall: ($F_1 = \frac{2PR}{P+R}$).                                                             |
-| **L1/L2 regularisation**     | Penalties added to loss to discourage large weights (L2: squared weights; L1: absolute values). Helps reduce overfitting.     |
+## 3. Main Content
 
-## 3. Main Contents
+### 3.1 Improving the Swiss Name Generator: N-grams and limits
 
-### 3.1 Recap: N-grams and the first Swiss name generator
+**N-grams refresher (examples from slides):**
 
-**N-grams**:
+- **Bigrams:** `<S>M`, `Mi`, `it`, `tr`, `ra`, `a<E>`
+- **Trigrams:** `<S>Mi`, `Mit`, `itr`, `tra`, `ra<E>`
+- **4-grams:** `<S>Mit`, `Mitr`, `itra`, `tra<E>`
 
-- Example using name _Mitra_:
-  - Bi-grams: `<S>M`, `Mi`, `it`, `tr`, `ra`, `a<E>`
-  - Tri-grams: `<S>Mi`, `Mit`, `itr`, `tra`, `ra<E>`
-  - 4-grams: `<S>Mit`, `Mitr`, `itra`, `tra<E>`
+**Week-1 approach:** a character-level bigram model using **counts → normalized probabilities** (each row sums to 1).
 
-**SwissNameGen v1 (bigram counts)**:
+**Autoregressive generation loop:** sample the next char from the learned distribution, feed it back until `<E>`.
 
-- Implemented a **character-level bigram model** using **counts only**.
-- Estimated a matrix of probabilities ($P(\text{next char} \mid \text{current char})$) by **normalising counts** (rows sum to 1).
-- Sampling:
-  - Start with `<S>`.
-  - Sample the next character from the row corresponding to the current character.
-  - Feed result back (autoregressive) until `<E>` is generated.
+**Why the “bigger context” table doesn’t scale (limitations slide):**
 
-**Limitations** (context length = 1):
+- Context length 1 ⇒ probability matrix size **53×53**
+- Context length 2 ⇒ matrix size **(53·53)×53**
+- Longer context ⇒ exploding table size + sparsity
+- Conclusion: not scalable / tractable / practical
 
-- Context is only the **previous single character**.
-- To increase context length, matrix grows rapidly:
-  - For 53 characters and context length 1: ($53 \times 53$) table.
-  - For context length 2: ($(53 \cdot 53) \times 53$), very sparse and large.
+### 3.2 Modeling the PDF with a Neural Network (replacing the table)
 
-- Not scalable or practical → motivates **neural networks**.
+Goal: have a NN output the **next-character probability distribution** instead of looking it up in a count table.
 
-### 3.2 Using neural networks to model the PDF
+**Key steps:**
 
-Goal: let a **NN** model the PDF ($P(\text{next char} \mid \text{current char})$).
+1. **Encode characters**: characters can’t be fed directly → map with `stoi/itos` then **one-hot encode**.
+2. **Simple DNN idea**: one-hot input → outputs counts/logits for each possible next character, representing likelihood.
+3. **Parameter growth reminder**: for 53 characters, a simple linear layer already has **53×53 weights** (+ biases).
 
-Steps:
+**Neuron view (slide diagram):**
 
-1. Represent current character as **one-hot vector**.
-2. Feed this vector into a **simple DNN** (linear layer) to produce logits ($\mathbf{o}\in\mathbb{R}^{num\ chars}$).
-3. Apply **softmax** to get probabilities for each possible next character.
-4. Use these probabilities to **sample** the next character.
+- Linear combination + bias: (w_1 x_1 + w_2 x_2 + b)
+- Add activation (f(\cdot)) to introduce non-linearity.
 
-Diagram (simplified):
+**Visualization (NN as next-char PDF approximator):**
 
 ```mermaid
 flowchart LR
-  C[Current char<br/>one-hot x] --> NN[Linear layer / small DNN]
-  NN --> O[Logits o]
-  O --> SM[Softmax]
-  SM --> P["Probabilities p(next char)"]
-  P --> S[Sample next char]
-  S -->|feed back| C
+  C[Current character] --> ID[stoi id]
+  ID --> OH[One-hot vector]
+  OH --> NN[Neural Network]
+  NN --> L[Logits for all characters]
+  L --> S[Softmax]
+  S --> P[Next-char probabilities]
 ```
 
-**Parameter count**
+### 3.3 Training the Neural Network (PyTorch perspective)
 
-- With 53 characters, a single linear layer from 53 inputs to 53 outputs has:
-  - Weights: ($53 \times 53$).
-  - Biases: ($53$).
+**Loss function:** Negative Log Likelihood (NLL), “aka cross entropy”.
 
-- Parameters grow quickly, especially if we add hidden layers (but still more flexible than giant N-gram tables).
+Softmax converts logits (c) to probabilities (p). Then loss is:
 
-### 3.3 Training the neural network
+$$
+\mathcal{L} = -\log(p_k)
+$$
 
-#### Loss: negative log likelihood / cross-entropy
+where (k) is the true class/next character.
 
-- Convert logits ($\mathbf{o}$) to probabilities ($\mathbf{p}$) by **softmax**:
-  $$p_k = \frac{e^{o_k}}{\sum_{j=1}^m e^{o_j}},\quad m = \text{number of characters}$$
-- For true class (k), loss:
-  $$L = -\log p_k$$
-- In PyTorch: simply use `torch.nn.CrossEntropyLoss`.
+**Training concept (slides):**
 
-#### Training steps
+- **Forward pass:** predict logits, compute loss
+- **Backward pass:** compute gradients of loss w.r.t. parameters
+- **Update:** gradient descent step (w \leftarrow w - \alpha \nabla_w \mathcal{L})
 
-1. **Forward pass**
-   - Input: character one-hot vector.
-   - NN outputs logits ($\mathbf{o}$).
-   - Compute loss using cross-entropy.
+**SGD vs batch vs mini-batch (shown explicitly):**
 
-2. **Backward pass (backpropagation)**
-   - Compute gradients ($\partial L / \partial w$) and ($\partial L / \partial b$) for every weight and bias.
+- SGD updates per sample
+- Batch GD updates using all (N) samples
+- Mini-batch GD updates using batch size (m)
 
-3. **Parameter update**
-   - Using gradient descent:
-     $$w^{(t+1)} = w^{(t)} - \alpha \frac{\partial L}{\partial w}$$
-   - ($\alpha$) = learning rate.
+**Epoch + learning rate + autograd:**
 
-PyTorch provides **automatic differentiation**, tracking tensor operations, computing gradients, and applying the chain rule automatically.
+- Epoch = one full data pass
+- Learning rate controls step size
+- PyTorch autograd tracks tensor ops and applies chain rule.
 
-#### SGD, batch, and mini-batch
+**Training loop “boilerplate” includes:** reset gradients (`zero_grad`), forward, loss, `backward()`, `step()`.
 
-- **SGD** (stochastic): update using a single sample at a time.
-- **Batch gradient descent**: compute gradient using **all** (N) samples in dataset.
-- **Mini-batch**: compute gradient on subset of size (m).
-  Mini-batch often balances speed and stability.
+**Hyperparameters list (slides):**
 
-#### Training loop (boilerplate)
+- learning rate, #epochs, batch strategy + batch size
+- architecture (#layers, #neurons), activations
+- regularization (L1/L2, lambda)
 
-Core pattern from the training loop on slide (page with code):
+### 3.4 Ultimate task: Name generation with the trained NN
 
-```python
-for epoch in range(num_epochs):
-    for x_batch, y_batch in batches:
-        optimizer.zero_grad()          # 1. reset gradients
-        outputs = model(x_batch)       # 2. forward pass
-        loss = criterion(outputs, y_batch)  # 3. compute loss
-        loss.backward()                # 4. backprop
-        optimizer.step()               # 5. update params
-```
+After training, the NN is used in an **autoregressive** generation loop:
 
-#### Hyperparameters
+- start token `<S>`
+- one-hot → model → logits → softmax → sample next char
+- stop when `<E>` is sampled
 
-Important hyperparameters (need to be chosen/tuned):
-
-- Learning rate, number of epochs, batch size.
-- Optimiser type: SGD vs mini-batch.
-- Network architecture:
-  - Number of layers.
-  - Neurons per layer.
-  - Activation functions.
-
-- Regularisation:
-  - L1/L2 strength ($\lambda$).
-
-### 3.4 Ultimate task: generating names with the trained NN
-
-After training, we can **generate names** similarly to the bigram model, but using the NN for probabilities.
-
-Pseudo-code (based on the generation slide):
-
-```python
-out = []
-ix = stoi["<S>"]
-while True:
-    start = fun.one_hot(torch.tensor([ix]), num_classes=num_chars).float()
-    logits = model(start)                     # forward pass
-    probabilities = torch.softmax(logits, dim=1)
-    ix = torch.multinomial(probabilities[0], num_samples=1, replacement=True, generator=g).item()
-    if ix == stoi["<E>"]:
-        break
-    out.append(itos[ix])
-print("".join(out))
-```
-
-The model thus **learns a more flexible PDF** than simple count-based bigrams and can generalise better.
-
-### 3.5 Additional NN components (not fully used in the simple model)
-
-#### Activation functions
-
-From the activation slide (ReLU, LeakyReLU, Sigmoid, Tanh):
-
-- **ReLU**: ( \text{ReLU}(x) = \max(0, x) )
-- **Leaky ReLU**: like ReLU but with small slope for negative inputs.
-- **Sigmoid**:
-  $$\sigma(x) = \frac{1}{1 + e^{-x}}$$
-- **Tanh**:
-  $$\tanh(x) = \frac{e^x - e^{-x}}{e^x + e^{-x}}$$
-
-They add non-linearity; choice affects training dynamics.
-
-#### More loss functions
-
-From the “More Loss functions” slide:
-
-- **Mean Squared Error (MSE)**:
-  $$L = \frac{1}{N}\sum_{i=1}^N (y_i - \hat y_i)^2$$
-- **Binary cross-entropy**:
-  $$L = -\frac{1}{N}\sum_{i=1}^N \big( y_i \log p_i + (1-y_i)\log(1-p_i)\big)$$
-- **Categorical cross-entropy** (multi-class):
-  $$L = -\frac{1}{N}\sum_{i=1}^N \sum_{j=1}^C y_{ij}\log p_{ij}$$
-
-Loss choice depends on task: regression vs binary classification vs multi-class.
-
-#### Regularisation (slide at the end)
-
-- **L2**:
-
-  $$L_{\text{total}} = L_{\text{original}} + \lambda\sum_j w_j^2$$
-
-- **L1**:
-
-  $$L_{\text{total}} = L_{\text{original}} + \lambda\sum_j |w_j|$$
-
-- Helps prevent overfitting by discouraging large weights.
-
-### 3.6 Images and the MNIST dataset
-
-#### What are images?
-
-- Image of size (H \times W) has (H\cdot W) pixels.
-- Grey-scale: 1 channel; colour: 3 channels (RGB).
-- Typical pixel values: 0–255 (`uint8`).
-
-#### Handwriting recognition and MNIST
-
-- Task: recognise digits 0–9 from images of **handwritten digits**.
-- **MNIST** dataset:
-  - 28×28 grey-scale images ⇒ 784 pixels.
-  - Values 0–255.
-
-- The slide with the MNIST grid on page 40 shows many 28×28 digit images; another slide zooms into a “3” with its 28×28 pixel value matrix.
-
-Expected classifier output:
-
-- A probability for each digit class (0–9), often via softmax over 10 logits.
-
-### 3.7 How **not** to handle images: MLPs on flattened pixels
-
-First naive solution: **flatten** the 28×28 pixel matrix into a 784-dimensional vector and feed it to an MLP. The diagram on page 44 shows this pipeline from flattened image to fully connected layers and softmax output.
-
-Problems with MLPs for images:
-
-- **Spatial structure ignored** – neighbouring pixels treated no differently than far away pixels.
-- Many parameters → **not parameter efficient** for large images.
-- High risk of **overfitting**.
-- Not **translation invariant**: moving a digit slightly changes many input values, but network does not naturally exploit that.
-
-This motivates **convolutional neural networks (CNNs)**.
-
-### 3.8 Convolutions and CNNs
-
-#### Convolution operation
-
-From the “What is convolution?” slide: a 3×3 filter is applied to a 3×3 region of a grey-scale image:
-
-1. Multiply image values and filter values **element-wise**.
-2. Sum the results → single output value.
-3. Slide filter over image (left-to-right, top-to-bottom) to get a new array (**feature map**).
-
-The example shows how applying a filter yields values like 1.5, 0, 0.5, –1.2 after summation.
-
-#### Padding and stride
-
-- **Stride**: step size of the filter:
-  - Stride 1 → move by 1 pixel at a time (dense coverage).
-  - Stride 2 → downsampling while convolving.
-
-- **Padding**: adding border values (often zeros) so that:
-  - e.g. “same” padding keeps output size equal to input size for stride 1.
-    Slide 50 visualises stride 1 vs stride 2 and padding.
-
-For a 1D intuition, the **output size** is:
-[
-\text{Output size} = \frac{\text{Input size} - \text{Kernel size}}{\text{stride}} + 1
-]
-
-#### Convolutional layers
-
-- A convolutional layer has a **collection of filters**; each learns to detect features such as edges or patterns.
-- Filter values are **learned weights** via backprop.
-- Applying (F) filters yields (F) feature maps.
-
-#### Example architecture: 1 filter vs multiple filters
-
-From the diagrams on pages 53–55:
-
-- Input: 28×28, 1 channel.
-- `Conv2D` with:
-  - Kernel 3×3, stride 1, padding such that output remains 28×28.
-  - With 1 filter → 1 feature map of size 28×28.
-  - With 4 filters → 4 feature maps of size 28×28.
-
-- `MaxPool2D` with kernel 2×2:
-  - Each 2×2 block → max element.
-  - Output feature maps of size 14×14.
-
-- Flatten + `Linear` layer to classify into 10 digits.
-
-**CNN parameter efficiency**
-
-- A 3×3 filter has only 9 weights per input channel (plus bias), reused across the entire image.
-- Compared to fully connected layer from 784 inputs to 100 neurons (78,400 weights), CNNs are much more parameter efficient and respect spatial structure.
-
-#### Exercise example (slide 56)
-
-You’re asked: for a 28×28 input, `Conv2D` with 10 filters of size 3×3, stride 3, then `MaxPool2D` 2×2: calculate output sizes using:
-[
-\text{Out} = \frac{\text{In} - \text{Kernel}}{\text{Stride}} + 1
-]
-(You can practice this as homework.)
-
-**Visualisation: CNN pipeline**
+**Visualization (generation loop):**
 
 ```mermaid
-flowchart LR
-  IMG[28x28 input image] --> CONV[Conv2D<br/>3x3 filters]
-  CONV --> FM[Feature maps 28x28]
-  FM --> POOL[MaxPool2D 2x2]
-  POOL --> FP[Flatten]
-  FP --> FC[Linear layer]
-  FC --> SOFT[Softmax]
-  SOFT --> OUT[Class probs 0-9]
+flowchart TD
+  Start[<S>] --> Encode[one-hot]
+  Encode --> Model[NN forward]
+  Model --> Prob[softmax probs]
+  Prob --> Sample[multinomial sampling]
+  Sample -->|char != <E>| Append[append char]
+  Append --> Encode
+  Sample -->|char == <E>| End[stop]
 ```
 
-### 3.9 Evaluating the classifier
+### 3.5 NN elements you “did not use” yet: activations & other losses
 
-Slides 58–62 cover evaluation metrics with a confusion matrix and corona diagnosis example.
+**Activation functions shown:** ReLU and sigmoid, plus mentions of leaky ReLU and tanh.
 
-#### Confusion matrix terms
+- ReLU: ($\mathrm{ReLU}(z)=\max(0,z)$)
+- Sigmoid: ($\sigma(x)=\frac{1}{1+e^{-x}}$)
 
-- **TP (True Positive)**: sick person correctly predicted as sick.
-- **TN (True Negative)**: healthy person correctly predicted as healthy.
-- **FP (False Positive)**: healthy person predicted as sick.
-- **FN (False Negative)**: sick person predicted as healthy.
+**Other loss functions (overview slide):**
 
-#### Metrics
+- Mean Squared Error
+- Binary cross entropy
+- (Categorical) cross entropy for multi-class
 
-For binary classification (extendable to multi-class):
+### 3.6 What are images (as tensors)?
 
-- **Accuracy**
-  $$\text{Accuracy} = \frac{TP + TN}{n}$$
-- **Precision**
-  $$P = \frac{TP}{TP + FP}$$
-- **Recall**
-  $$R = \frac{TP}{TP + FN}$$
-- **F1 score**
-  $$F_1 = \frac{2PR}{P+R}$$
-- F1 is high only if **both** precision and recall are high.
+Slides define image representation:
 
-These metrics help evaluate trade-offs between catching all positives (high recall) and avoiding false alarms (high precision).
+- Image size ($H \times W$) ⇒ ($H\cdot W$) pixels
+- Color images: **3 channels (RGB)**
+- Grayscale: **1 channel**
+- Pixel values often **0..255** (`uint8`)
 
-## 4. Relationships and Interpretation
+**MNIST specifics:**
 
-- **From N-grams to NNs**
-  - N-grams explicitly store probabilities in tables; scaling context length explodes table size and sparsity.
-  - NNs **compress** this information into weights, enabling richer context modelling without huge explicit tables.
+- 28×28 images
+- 784 pixels
+- grayscale
+- values 0..255
 
-- **From vectors to images**
-  - Treating images as flat vectors ignores spatial structure.
-  - CNNs use **local receptive fields** and **weight sharing**, capturing local patterns (edges, corners) and achieving translation invariance.
+### 3.7 How not to handle images: Why MLPs are poor for vision
 
-- **Training and generalisation**
-  - Proper choice of **loss**, **optimiser**, **hyperparameters**, and **regularisation** controls how well the model fits training data vs generalises to new data.
+Slides ask “Are MLPs good for images?” and answer:
 
-- **Evaluation metrics**
-  - Accuracy alone can be misleading; e.g. in imbalanced datasets, F1 better reflects performance by balancing precision and recall.
+- Spatial structure is ignored when flattening
+- Images are large ⇒ too many parameters
+- Not parameter efficient
+- Prone to overfitting
+- Not translation invariant
 
-## 5. Examples and Applications
+### 3.8 Convolution and CNN basics
 
-- **SwissNameGen (v1 & v2)**:
-  - v1: bigram counts only.
-  - v2: DNN modelling the PDF of next character, using one-hot encoding and softmax.
+**Convolution idea (slide walkthrough):**
 
-- **Digit recognition on MNIST**:
-  - Input: 28×28 grey-scale digits.
-  - Model: CNN (Conv2D + MaxPool + Linear).
-  - Output: probabilities for digits 0–9.
+1. Multiply filter and image patch element-wise
+2. Sum results
+3. Slide across image (left→right, top→bottom) to create a new array (feature map)
 
-- **Small app “in the wild”**:
-  - Write a number on screen, convert to image, feed through trained CNN, display predicted digit.
-  - Demonstrates challenges such as different handwriting styles, noise, and need for **data augmentation** to improve robustness.
+**Padding and stride:**
+
+- Stride controls step size
+- Padding can preserve size (e.g., output matches input when stride=1)
+
+**Convolution layer:** a collection of filters; filter weights are learned; filters become feature detectors (edges, color combinations, etc.).
+
+**Output-size formula (exercise slide):**
+
+$$
+\text{Output size}=\frac{\text{Input size}-\text{Kernel size}}{\text{Stride}}+1
+$$
+
+(as stated on the slide).
+
+### 3.9 Evaluation for classifiers
+
+Metrics listed: **Accuracy, Precision, Recall, F1 score**.
+
+Slides motivate false positives vs false negatives with a medical diagnosis example.
+
+**Formulas (from slides):**
+
+- Precision: ($P=\frac{TP}{TP+FP}$)
+- Recall: ($R=\frac{TP}{TP+FN}$)
+- F1: ($F1=\frac{2PR}{P+R}$) (harmonic mean)
+
+## 4. Connections and Interpretation
+
+- **Week 1 → Week 2 bridge:** bigram counts implement a simple discrete “PDF”; Week 2 replaces the explicit table with a **learnable function approximator** (NN) that can generalize better and later scale.
+- **Same generative pattern across modalities:**
+  - Names: sample next character from a learned distribution
+  - Images/classification: learn feature hierarchies; convolution is the core inductive bias for spatial data.
+
+## 5. Examples and Applications (from the slides)
+
+- **Build two NN variants** of the Swiss name generator.
+- **Build a CNN digit classifier** (MNIST).
+- **Build a small “write-on-screen” app** to recognize digits “in the wild,” and learn about robustness + augmentation.
 
 ## 6. Summary / Takeaways
 
-- N-gram models are simple but **do not scale** with context; NNs provide a more flexible way to model **probability distributions** over characters.
-- Training NNs involves **forward pass**, **loss computation**, **backprop**, and **gradient descent** with many hyperparameters to tune.
-- **Activation functions** and **loss functions** are key design choices; cross-entropy is standard for classification.
-- **Images** are structured 2D (or 3D) data; treating them as flat vectors wastes structure and parameters.
-- **Convolutions** and **CNNs** exploit locality and translation invariance, making them ideal for image tasks like MNIST digit recognition.
-- Proper **evaluation metrics** (precision, recall, F1) and **regularisation** are essential to assess and improve real-world models, not just training accuracy.
+- N-gram tables become infeasible as context grows; NNs offer a scalable alternative.
+- Training loop essentials: logits → softmax → cross-entropy, forward/backward, gradient descent, learning rate, batches.
+- Images require respecting spatial structure; MLPs are inefficient for that, CNNs are built for it.
+- Evaluation needs more than accuracy; precision/recall/F1 capture different error costs.
 
-## 7. Study Tips
+## 7. Learning Hints
 
-- Re-implement the **bigram name generator** and then swap in a **neural network**; compare results and behaviour.
-- Step through the **training loop** manually:
-  - Print loss after each epoch.
-  - Experiment with different learning rates and batch sizes.
+- Be able to derive/explain:
+  - Why context length explodes table size in n-grams
+  - Why one-hot + linear layer resembles the bigram matrix idea
+  - Cross-entropy as “negative log probability of the true class”
+  - What stride/padding do to output shapes
+  - When you care more about precision vs recall (and why F1 is useful)
 
-- For **CNNs**, practice computing:
-  - Output sizes given kernel, stride, and padding.
-  - Number of parameters for conv and linear layers.
+## 8. Deepening / Further Concepts (next logical steps)
 
-- Draw your own **confusion matrix** for a small example and compute accuracy, precision, recall and F1 by hand.
-- Play with **regularisation**:
-  - Train a small model with/without L2; observe overfitting vs generalisation.
+- Replace one-hot with **embeddings** (parameter efficiency + generalization)
+- Use deeper MLPs / regularization systematically (L1/L2)
+- For vision: stacking conv + pooling layers, then classifier head
+- Data augmentation for robustness (especially for “in the wild” handwriting)
 
-## 8. Further Topics / Extensions
+## 9. Sources & Literature (IEEE)
 
-This week sets the stage for:
+[1] I. Goodfellow, Y. Bengio, and A. Courville, _Deep Learning_. Cambridge, MA, USA: MIT Press, 2016.
 
-- Deeper and more complex CNN architectures.
-- Data augmentation (rotations, shifts, noise) to better handle “in the wild” scenarios.
-- Extending from discriminative CNNs to **generative image models** (AEs, VAEs, GANs, diffusion).
-- Integrating image and text models into **multimodal generative AI** systems.
+[2] A. C. Ng, “CS229 Lecture Notes: Machine Learning,” Stanford Univ., 2019.
 
-## 9. References & Literature (IEEE style)
-
-[1] Y. LeCun, L. Bottou, Y. Bengio, and P. Haffner, “Gradient-based learning applied to document recognition,” _Proc. IEEE_, vol. 86, no. 11, pp. 2278–2324, 1998.
-
-[2] Y. LeCun and C. Cortes, “MNIST handwritten digit database,” 2010.
-
-[3] V. Dumoulin and F. Visin, “A guide to convolution arithmetic for deep learning,” arXiv:1603.07285, 2016.
-
-[4] I. Goodfellow, Y. Bengio, and A. Courville, _Deep Learning_. Cambridge, MA, USA: MIT Press, 2016.
-
-[5] M. Purandare, _Week 2: Deep Learning Revision_, Lecture Slides, Generative AI, OST – Ostschweizer Fachhochschule, Sept. 2025.
+[3] V. Dumoulin and F. Visin, “A Guide to Convolution Arithmetic for Deep Learning,” _arXiv preprint arXiv:1603.07285_, 2016.

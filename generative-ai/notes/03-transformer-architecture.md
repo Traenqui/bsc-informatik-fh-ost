@@ -1,381 +1,236 @@
-# Generative AI - Week 3: Transformer Architecture
+# Generative AI Week 3: From N-grams to Transformers
 
 ## Overview
 
-- **Topic of the unit:** Transformer Architecture – internals of encoder & decoder
-- **Lecturer:** Mitra Purandare
-- **Learning goals:**
-  - Understand the **data flow** through a transformer encoder and decoder.
-  - Know what **embeddings**, **positional embeddings**, **multi-head attention**, **feed-forward layers**, **layer normalization**, **dropout**, and **skip connections** do.
-  - Be able to write down and interpret the **scaled dot-product attention** formula.
-  - Understand the difference between **batch normalization** and **layer normalization**, and why transformers use layer norm.
-  - Understand **masked self-attention** and **cross-attention** in the decoder for seq2seq tasks.
+- **Topic of the unit:** Why fixed-window N-grams don’t scale, and how **Transformers** solve sequence modeling with **positional embeddings** + **self-attention** (incl. multi-heads, causal masking), plus the remaining transformer-block ingredients (FFN, LayerNorm, Dropout, skip connections) and architecture variants (encoder-only / decoder-only / encoder-decoder).
+- **Instructor:** Mitra Purandare
+- **Learning goals (explicit):** positional encoding, self-attention, attention heads, feed-forward layer, dropout, layer normalization, cross attention, causal masking
 
 ## 1. Introduction / Context
 
-Transformers are the backbone of modern generative models (LLMs, translation systems, etc.). Unlike RNNs, they process **all tokens in a sequence at once**, using **self-attention** to decide which tokens should attend to which others.
+The course’s running example remains **generative modeling**: learn a distribution from a Swiss names dataset, then **generate new names autoregressively** (token-by-token).
 
-The example sentence used throughout the notes is:
+Week 3 answers the question:
 
-> “The golfer drove to the course.”
+> If N-grams (even neural N-grams) struggle with long context, how do Transformers represent and use long-range context efficiently?
 
-Page 2 shows how this sentence is tokenized, converted to embeddings, enriched with positional information, passed through several **transformer blocks**, and finally through a linear layer and softmax to produce output probabilities.
+## 2. Central Terms and Definitions
 
-## 2. Key Terms and Definitions
+| Term                                    | Definition (Week 3 meaning)                                                                                                              |
+| --------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| **Tokenization**                        | Splitting text into tokens (here: characters for names; later: words/subwords for sentences).                                            |
+| **Context window (N-gram)**             | For an N-gram, the context is the previous **N−1** tokens used to predict the next token.                                                |
+| **Embedding**                           | A learned vector representation of tokens (and positions) using an embedding lookup table (`nn.Embedding`).                              |
+| **Self-attention**                      | Mechanism that computes, for each token, how much to “attend to” other tokens in the context using **Q, K, V** and a softmax weighting.  |
+| **Q / K / V**                           | Query/Key/Value linear projections of embeddings used to compute attention weights and weighted sums.                                    |
+| **Multi-head attention**                | Multiple attention heads in parallel; their outputs are concatenated to capture different relations (syntax/semantics/long-range, etc.). |
+| **Causal masking**                      | Masking future tokens in decoder self-attention so the model can’t “cheat” during next-token prediction.                                 |
+| **FFN (Feed-Forward Network)**          | Position-wise MLP applied independently to each token after attention, typically 2 linear layers + nonlinearity.                         |
+| **Layer Normalization**                 | Normalizes each token’s features (per token), independent of batch size; preferred for sequence models.                                  |
+| **Dropout**                             | Regularization: randomly zero out activations during training to reduce overfitting.                                                     |
+| **Skip/Residual connection**            | Add input (x) to layer output to stabilize training and help gradient flow.                                                              |
+| **Encoder / Decoder / Encoder-Decoder** | Transformer variants used for understanding-only tasks, generation, or seq2seq translation (respectively).                               |
 
-| Term                                | Definition                                                                                                                                       |
-| ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **Embedding**                       | A dense vector representation of tokens; maps token IDs to vectors of size `emb_dim`.                                                            |
-| **Positional embedding / encoding** | A vector that represents the **position** of a token in the sequence; added to the token embedding to encode order.                              |
-| **Self-attention**                  | Mechanism where each token (as a **query**) looks at all tokens (as **keys** and **values**) in the same sequence to build a **context vector**. |
-| **Query (Q)**                       | Vector representing the “question” a token is asking about its context.                                                                          |
-| **Key (K)**                         | Vector representing how relevant a token is to any query.                                                                                        |
-| **Value (V)**                       | Vector containing the actual information that gets aggregated (context).                                                                         |
-| **Scaled dot-product attention**    | Computes attention scores by dot products of queries and keys, scales them, applies softmax, and weighs values.                                  |
-| **Multi-head attention**            | Several attention heads in parallel, each with its own Q, K, V projections; their outputs are concatenated and linearly transformed.             |
-| **Encoder**                         | Stack of transformer blocks that take the **source sentence** and produce contextualized embeddings.                                             |
-| **Decoder**                         | Stack of transformer blocks that generate the **target sentence**, using masked self-attention and cross-attention to encoder outputs.           |
-| **Masked (causal) attention**       | Self-attention in which tokens are prevented from attending to **future positions** in the sequence.                                             |
-| **Cross-attention**                 | Attention where queries come from the decoder, but keys and values come from the **encoder outputs**.                                            |
-| **Batch normalization**             | Normalizes each **feature** across the batch dimension.                                                                                          |
-| **Layer normalization**             | Normalizes each **token vector** across its feature dimensions; independent of batch size.                                                       |
-| **bmm**                             | Batched matrix multiplication: performs matrix multiplies for a whole batch in one operation.                                                    |
-| **Dropout**                         | Regularization technique that randomly sets some activations to 0 during training to avoid overfitting.                                          |
-| **Skip / residual connection**      | Adds the input of a block to its output, creating a shortcut path for gradients and information.                                                 |
+## 3. Main Content
 
-## 3. Main Contents
+### 3.1 Recap: N-grams, tokenization, and embeddings
 
-### 3.1 High-level Transformer Encoder
+**Tokenization for Swiss names:** split each name into characters; the set of all characters forms the vocabulary/dictionary.
 
-According to the large diagram on **page 2**, the encoder pipeline looks like this:
+**Context idea (example trigram):** previous two characters predict the next; e.g. context “it” → predict “r”.
 
-1. **Tokenization**
-   The sentence is converted to token IDs, e.g.
-   “The golfer drove to the course .” → `[4, 5, 6, 10, 20, 39, 19]`.
+**Embedding vs one-hot:**
 
-2. **Positions**
-   A position index is assigned to each token:
-   `[0, 1, 2, 3, 4, 5, 6]`.
+- One-hot is possible but sparse.
+- An **embedding layer is a lookup table** (`nn.Embedding`) mapping token IDs to dense vectors.
 
-3. **Token Embedding + Positional Embedding**
-   Each token ID → token embedding vector in $\mathbb{R}^{\text{emb\ dim}}$.
-   Each position index → position embedding vector in $\mathbb{R}^{\text{emb\ dim}}$.
-   Final input embedding for each position:
-   $$\text{input\ vec} = \text{token\ emb} + \text{pos\ emb}$$
+**Neural N-grams:** last N−1 tokens → embeddings → concatenation → MLP → softmax over vocab. Benefits: learned embeddings + parameter sharing/generalization beyond seen N-grams.
 
-4. **Layer Normalization + Dropout**
-   Applied to stabilize training and reduce overfitting.
+### 3.2 Why not increase N?
 
-5. **Stack of Transformer Blocks**
-   Each block contains:
-   - LayerNorm
-   - Multi-head self-attention (+ residual)
-   - LayerNorm
-   - Position-wise feed-forward network (+ residual)
+Week 3 gives three main reasons:
 
-6. **Dropout + Output**
-   After $N$ blocks, outputs are passed to a final linear layer and softmax for prediction.
+1. **Combinatorial explosion (count-based N-grams):** number of contexts grows like ($|V|^{N-1}$). Example shown: ($|V|=30$), ($N=6\Rightarrow 30^5=24,300,000$); ($N=7\Rightarrow 30^6=729,000,000$).
 
-**Visualisation:**
+2. **Neural N-grams still grow costly:** concatenating more embeddings increases input size linearly in N, which makes weight matrices larger and can increase compute/memory.
+
+3. **Sample complexity + fixed-window inflexibility:** more contexts require far more data; fixed N treats all positions equally even though only a few past tokens may matter.
+
+**Takeaway slide:** fixed-length context is inevitable, but **attention** makes a fixed context _expressive_ by focusing on the relevant tokens.
+
+### 3.3 Solution: Transformer (high-level)
+
+Transformers address the above via:
+
+- **Dynamic selection:** attention weights over past tokens
+- **Parameter sharing:** shared Q/K/V projections + multi-head structure
+- **Parallelism:** process the whole context at once (not step-by-step recurrence)
+
+**Conceptual comparison**
 
 ```mermaid
 flowchart LR
-  TXT["Input text: 'The golfer drove to the course .'"]
-  TXT --> TOK[tokenizer]
-  TOK --> IDS["Token IDs"]
-  IDS --> EMB["Token Embedding"]
-  IDS --> POS["Position Embedding"]
-  EMB --> ADD[(Add)]
-  POS --> ADD
-  ADD --> LN1[LayerNorm + Dropout]
-  LN1 --> B1["Transformer Block 1"]
-  B1 --> B2["Transformer Block 2"]
-  B2 --> OUT["Final hidden states"]
+  A["N-gram (count table)"] -->|"scales as |V|^(N-1)"| B[Context explosion]
+  C["Neural N-gram (concat embeddings)"] -->|input grows with N| D[Large matrices + overfit risk]
+  E["Transformer (attention)"] --> F[Dynamic focus within fixed window]
 ```
 
-### 3.2 Scaled Dot-Product Attention (Single Head)
+### 3.4 Positional Embeddings (why they’re needed)
 
-Page 3 zooms into a **single attention head**.
+Transformers process tokens in parallel; without extra information, order is ambiguous (“cat sat on mat” vs “mat sat on cat”).
 
-1. **Linear projections** (per token):
-   - $Q = X W_Q$
-   - $K = X W_K$
-   - $V = X W_V$
+**Two approaches shown:**
 
-   where $X$ is the matrix of input embeddings from the positional embedding block, and $W_Q$, $W_K$, $W_V$ are learned weight matrices.
+1. **Learned positional embeddings:** an embedding vector per position, added to token embeddings.
+2. **Sinusoidal positional embeddings:** fixed sine/cosine functions across dimensions/frequencies, giving each position a unique “fingerprint” and enabling extrapolation to longer sequences.
 
-2. **One query $q$**
-   For a single query vector $q$ and all keys $K$, attention scores are:
-   $$\text{attention}_1(q, K) = \text{softmax}\left(\frac{q K^\top}{\sqrt{\text{key\ dim}}}\right)$$
-
-   This produces a $1 \times \text{seq\ len}$ vector of weights.
-   The higher $\text{attention}_1(q, k)$, the more a key $k$ **resonates** with query $q$ (for example, “The” attending to “golfer”).
-
-3. **Contextualization**
-   The final context vector for query $q$ is a weighted sum over values:
-   $$\text{context}(q) = \text{attention}_1(q, K) , V$$
-
-   Intuitively, this is a **blended opinion** from all tokens in the sentence.
-
-4. **All queries at once** (Step 4 on page 4)
-   Using the full query matrix $Q$:
-   $$\text{attention}*1(Q, K) = \text{softmax}\left(\frac{Q K^\top}{\sqrt{\text{hid\ size}}}\right)$$
-   $$\text{attention}*\text{final}(Q, K, V) = \text{attention}_1(Q, K) , V$$
-
-   Here, $\text{attention}_1(Q, K)$ is a square matrix of size $(\text{seq\ len}, \text{seq\ len})$; each row corresponds to how one token attends to all tokens.
-
-### 3.3 Multi-Head Attention
-
-The attention mechanism above is **one head**. Transformers use **multiple heads**:
-
-- Each head $h$ has its own $(W_Q^{(h)}, W_K^{(h)}, W_V^{(h)})$.
-- Each head produces its own context matrix $C^{(h)}$.
-- All heads are concatenated along the feature dimension and passed through a final linear layer.
-
-There is a constraint between number of heads and value dimension:
+**Sinusoidal definition (as shown):**
 
 $$
-\text{val\ dim} = \frac{\text{emb\ dim}}{\text{num\ heads}}
+PE(pos,2i)=\sin\Big(\frac{pos}{10000^{2i/d}}\Big),\quad
+PE(pos,2i+1)=\cos\Big(\frac{pos}{10000^{2i/d}}\Big)
 $$
 
-Having several heads allows the model to focus on **different aspects** simultaneously (e.g. subject–verb relations vs. adjective–noun connections).
+**FYI note in slides:** RoPE is mentioned as a modern alternative emphasizing relative distances (common in modern LLMs).
 
-**Visualisation:**
+### 3.5 Self-Attention (Q, K, V) — what happens inside
+
+The “visual guide” and the Week 3 slides break attention into steps:
+
+1. From token+position embeddings, compute:
+   $$
+   Q = XW_Q,\quad K = XW_K,\quad V = XW_V
+   $$
+2. Compute attention weights using scaled dot-products:
+   $$
+   \text{Attn}(Q,K)=\text{softmax}\Big(\frac{QK^\top}{\sqrt{d_k}}\Big)
+   $$
+3. Contextualize by weighted sum of values:
+   $$
+   \text{Context}(X)=\text{Attn}(Q,K),V
+   $$
+
+**Interpretation used in slides:** higher attention score means a key “resonates” more with the query; output is a “blended” representation of values.
+
+**Self-attention block (single head)**
 
 ```mermaid
-flowchart LR
-  X[Input embeddings] --> LQ[Linear W_Q^h] --> Q
-  X --> LK[Linear W_K^h] --> K
-  X --> LV[Linear W_V^h] --> V
-  Q --> ATT[Scaled dot-product attention]
-  K --> ATT
-  V --> ATT
-  ATT --> CH["Head output C^(h)"]
+flowchart TD
+  X[Input embeddings X] --> Q[Linear -> Q]
+  X --> K[Linear -> K]
+  X --> V[Linear -> V]
+  Q --> DP["QK^T / sqrt(dk)"]
+  K --> DP
+  DP --> SM[softmax]
+  SM --> WV[weights * V]
+  V --> WV
+  WV --> O[Contextualized embeddings]
 ```
 
-(Repeated in parallel for each head, then concatenated.)
+### 3.6 Causal Masking (decoder only)
 
-### 3.4 Positional Embeddings
+For next-token prediction, letting a token attend to future tokens would leak information (cheating). So the decoder uses a **causal mask** that blocks attention to positions (> t).
 
-On page 5, the notes highlight that, unlike RNNs, transformers see the **whole sentence at once** and the multi-head attention itself is **position-agnostic**.
+**Mask intuition (lower-triangular allowed area):**
 
-Example:
+```text
+Allowed attention (✓) vs masked (×) for position t
 
-- “The lion looked at the hunter and …”
-- “The hunter looked at the lion and …”
+t=0: ✓ × × ×
+t=1: ✓ ✓ × ×
+t=2: ✓ ✓ ✓ ×
+t=3: ✓ ✓ ✓ ✓
+```
 
-To know **who looked at whom**, the model must know token **order**.
+### 3.7 Multi-head Attention
 
-Solution: **positional encodings/embeddings**:
+Instead of one attention pattern, transformers use several heads; each head can learn a different relationship (syntax, semantics, long-range dependencies, etc.). Outputs are concatenated (and typically projected).
 
-- Token embeddings: created by `nn.Embedding` from token IDs.
-- Positional embeddings: created by `nn.Embedding` from position indices (or via sinusoidal formulas as in the original paper).
-- Final input to transformer:
-  $$\text{input\ embedding} = \text{token\ emb} + \text{position\ emb}$$
+**Heads constraint (shown):** value/head dimensions relate to embedding dim (e.g., (val_dim = emb_dim / num_heads) in the visual guide).
 
-This combined vector captures both **meaning** and **position**.
+### 3.8 Transformer Block: FFN + LayerNorm + Dropout + Residuals
 
-### 3.5 Normalization: Batch vs Layer Norm
+**Block structure (as shown):** LayerNorm → Multihead Attention (+ residual) → LayerNorm → FFN (+ residual), with dropout used as regularization.
 
-Pages 5–8 provide a detailed comparison with concrete numeric examples.
+**FFN formula (slide):**
 
-#### 3.5.1 Batch Normalization
+$$
+FFN(x)=W_2(\text{ReLU}(W_1x+b_1))+b_2
+$$
 
-- Normalizes each **feature dimension** across the **batch**.
+applied **independently per token** (“position-wise”).
 
-- Imagine a 3D tensor (batch, seq*len, emb_dim).
-  For batch norm, for each feature index $j$ (across all tokens and examples in the batch), compute:
-  $$\mu*\text{batch}^{(j)} = \text{mean of feature } j \text{ across batch}$$
-  $$\sigma*\text{batch}^{(j)} = \text{std of feature } j \text{ across batch}$$
-  Then:
-  $$\text{Norm}*\text{batch}(x^{(j)}) = \gamma^{(j)} \cdot \frac{x^{(j)} - \mu*\text{batch}^{(j)}}{\sigma*\text{batch}^{(j)} + \epsilon} + \beta^{(j)}$$
+**LayerNorm vs BatchNorm:** LayerNorm normalizes each token across features and is independent of batch size; slides emphasize this is better suited for sequences (variable lengths, small batches).
 
-- Works well for vision models with large, consistent batch sizes, but **depends on batch statistics**.
+**Dropout (slide explanation):** randomly turn off activations during training; encourages robust redundant representations and reduces overfitting.
 
-#### 3.5.2 Layer Normalization
+**Skip connection:** ($\text{Output} = \text{Layer}(x) + x $); stabilizes training and helps gradients flow (avoids vanishing gradients).
 
-- Normalizes **each token vector** across its **features** (independent of batch):
+### 3.9 Encoder, Decoder, Encoder-Decoder (and what they’re for)
 
+Slides classify three major transformer families:
+
+- **Encoder-only** (e.g., BERT, RoBERTa, DistilBERT): no causal masking; attends to entire input to build representations (classification, NER, etc.).
+- **Decoder-only** (e.g., GPT): autoregressive generation; uses **causal masking**.
+- **Encoder–Decoder** (e.g., T5, BART): seq2seq tasks like translation; decoder additionally uses **cross-attention** to encoder outputs.
+
+**Cross-attention (decoder side):** keys/values come from encoder contextualized outputs, not from the decoder tokens themselves.
+
+### 3.10 Training viewpoint: “Simplified GPT”
+
+The slides show a simplified decoder-style pipeline:
+
+- text + positional embedding → transformer blocks → dense → next-token probabilities (softmax), trained with cross-entropy, updated via optimizer/backprop.
+
+They also list typical **hyperparameters** (example set): vocab size, seq length (for masks), embed dim, num heads, head dim, FFN dim (often 4×embed), number of layers, learning rate, batch size, dropout rate.
+
+## 4. Connections and Interpretation
+
+- **Core task stays the same** across N-grams → neural N-grams → transformers: estimate conditional distributions
   $$
-  \mu_\text{layer} = \frac{1}{d}\sum_{j=1}^d x_j, \quad
-  \sigma_\text{layer}^2 = \frac{1}{d}\sum_{j=1}^d (x_j - \mu_\text{layer})^2
+  p(x_t \mid x_{t-k},\dots,x_{t-1})
   $$
+  but the _representation of context_ changes from fixed tables → concatenated embeddings → **attention-weighted context**.
+- Transformers keep a **fixed context window**, but attention makes it adaptive: the model learns _which_ tokens matter most for predicting the next token.
 
-  $$
-  \text{Norm}*\text{layer}(x) = \gamma \cdot \frac{x - \mu*\text{layer}}{\sigma_\text{layer} + \epsilon} + \beta
-  $$
+## 5. Examples and Applications (from slides)
 
-- Appropriate for sequence models:
-  - Works with **variable-length sequences** and **small batch sizes**.
-  - Does not rely on batch statistics.
-
-#### 3.5.3 Why normalize at all?
-
-- Different feature scales can slow down gradient descent.
-- Very large activations can cause **exploding gradients**.
-- Normalization keeps activations in a stable range and speeds up training.
-
-#### 3.5.4 Normalization vs Standardization
-
-The notes also mention:
-
-- **Min-max normalization**:
-  $$x_\text{norm} = \frac{x - x_\text{min}}{x_\text{max} - x_\text{min}}$$
-
-- **Standardization / z-score**:
-  $$x_\text{std} = \frac{x - \mu}{\sigma + \epsilon}$$
-
-In practice, the terms _normalization_ and _standardization_ are sometimes used interchangeably (e.g. in Keras).
-
-### 3.6 Feed-Forward Layer, bmm, Dropout, Skip Connections
-
-Page 9 briefly describes additional components of the transformer block.
-
-1. **Feed-forward layer (FFN)**
-   - Applied **independently to each token** (position-wise).
-   - Typically two linear layers with a nonlinearity:
-     $$\text{FFN}(x) = W_2 , \sigma(W_1 x + b_1) + b_2$$
-   - Learns higher-level features after self-attention.
-
-2. **bmm (batched matrix multiplication)**
-   - Simply performs many matrix multiplications at once for different batch elements, e.g. when computing $QK^\top$ and attention$ \cdot V$ for all sentences.
-
-3. **Dropout**
-   - Randomly sets some activations to 0 during training.
-   - Introduced by Hinton et al. (2012) and Srivastava et al. (2014) to prevent **co-adaptation** of feature detectors and reduce overfitting.
-
-4. **Skip / residual connection**
-   - The input to a sub-layer is added to its output:
-     $$\text{out} = \text{subLayer}(x) + x$$
-   - Provides a “gradient highway” and helps combat vanishing gradients (similar spirit to residual connections and LSTMs).
-
-5. **Hyperparameters (encoder)**
-   Example list from the notes:
-   - `vocab_size`
-   - `seq_length`
-   - `embed_dim`
-   - `num_heads`
-   - `head_dim = embed_dim // num_heads`
-   - `ff_dim = 4 * embed_dim`
-   - `num_encoder_layers`
-   - `learning_rate`
-   - `batch_size`
-   - `dropout_prob`
-
-### 3.7 Transformer Decoder
-
-The **decoder** shares much of the structure of the encoder but with two important twists (pages 10–11).
-
-#### 3.7.1 Masked Multi-Head Attention (Causal Masking)
-
-Task: given previous tokens, predict the **next** token.
-
-Problem: during training, the full target sentence is known, so without constraints the model could “cheat” and look at **future words** via attention.
-
-Solution: apply a **causal mask** to the attention matrix:
-
-- For position $i$, attention scores to positions $j > i$ are **masked** (set to $-\infty$ before softmax), so the model cannot access future tokens.
-- Only past and current tokens are visible.
-
-This mask appears visually as a **triangular matrix** (upper triangle masked) in the attention heatmap on page 10.
-
-Causal masking is only needed in the **decoder**, where we generate tokens sequentially.
-
-#### 3.7.2 Cross-Attention
-
-For a seq2seq task (e.g. German → English):
-
-- The encoder has already produced contextualized embeddings for the source sentence (“Der Golfer fuhr zum Golfplatz.”).
-- In the decoder, after masked self-attention over the generated target tokens:
-  - **Queries** $Q$: come from the decoder states.
-  - **Keys** $K$ and **Values** $V$: are the encoder outputs (contextualized embeddings).
-
-This is **multi-head cross-attention**: the decoder “looks at” relevant parts of the source sentence while generating each target token. The block diagram on page 11 shows this connection clearly.
-
-The decoder then passes through:
-
-- Another LayerNorm
-- Feed-forward network
-- Final LayerNorm
-- Linear + softmax over the **target vocabulary** to produce output probabilities.
-
-#### 3.7.3 Decoder Hyperparameters
-
-Similar to encoder, but note:
-
-- `vocab_size`: size of **target** vocab (German or English, depending on direction).
-- `num_hidden_transformer_layers`: number of decoder blocks.
-- `dropout_prob` often non-zero (e.g. $0.2$ in the notes).
-
-## 4. Relationships and Interpretation
-
-- **Embeddings + positional encodings** provide the **input representation**: meaning + order.
-- **Self-attention** lets each token build a **context-aware** representation, weighted by relevance to other tokens.
-- **Multi-head attention** means the model can attend to several types of relationships simultaneously.
-- **Layer norm + residual connections** stabilize training and enable **deep stacks** of transformer blocks.
-- **Masked self-attention** in the decoder enforces **causality**, crucial for generation.
-- **Cross-attention** bridges **encoder** (source sentence) and **decoder** (target sentence) in seq2seq tasks.
-- **Dropout** and **normalization** fight overfitting and exploding gradients, improving generalization.
-
-## 5. Examples and Applications
-
-From the diagrams:
-
-- Source sentence: “Der Golfer fuhr zum Golfplatz.”
-- Target sentence: “The golfer drove to the course.”
-
-The encoder processes the German sentence; the decoder uses masked self-attention plus cross-attention to these encoder outputs to generate the English translation token by token.
-
-More generally, this architecture underlies:
-
-- Machine translation
-- Text generation (LLMs)
-- Summarization, question answering, code generation, etc.
+- **BERT sneak peek** on Hugging Face (conceptual exposure).
+- **Exercise:** implement your own transformer building blocks (positional encoding, attention, masking, etc.).
+- **Translation example** (encoder-decoder motivation + cross-attention).
 
 ## 6. Summary / Takeaways
 
-- A transformer consists of **stacked blocks** with:
-  - Multi-head (self or cross) attention
-  - Position-wise feed-forward networks
-  - LayerNorm + residual connections
+- Increasing N in N-grams is a dead end due to **context explosion**, **data hunger**, and **fixed-window inefficiency**.
+- Transformers replace “use all past tokens equally” with **self-attention**: learn relevance weights over tokens.
+- **Order must be injected** via positional embeddings (learned or sinusoidal; RoPE mentioned as modern).
+- Decoder generation requires **causal masking**; translation uses **cross-attention**.
+- Transformer blocks are more than attention: **FFN + LayerNorm + Dropout + residuals** are essential for stable training and expressivity.
 
-- Attention is computed via **scaled dot-product**:
-  $$\text{Attention}(Q, K, V) = \text{softmax}\left(\frac{Q K^\top}{\sqrt{d_k}}\right) V$$
+## 7. Learning Hints
 
-- **Positional embeddings** are essential because attention alone is permutation-invariant.
+Be ready to explain/derive (quickly, from memory):
 
-- **Layer normalization**, not batch norm, is used in transformers because it’s **independent of batch size** and fits variable-length sequences.
+- Why ($|V|^{N-1}$) explodes and what “sparsity” implies for counts.
+- The attention equation and what Q/K/V _mean_ conceptually.
+- Why positional embeddings are necessary and the intuition behind sine/cosine frequencies.
+- When and why causal masking is required (decoder-only).
+- The role of FFN, LayerNorm, Dropout, and residual connections in the transformer block.
 
-- The **decoder** adds:
-  - **Masked** self-attention to prevent peeking at future tokens.
-  - **Cross-attention** to encoder outputs for seq2seq tasks.
+## 8. Deepening / Further Concepts
 
-## 7. Study Tips
+- Attention complexity vs context length (compute/memory tradeoffs)
+- Relative positional methods (e.g., RoPE) and long-context behavior
+- Model families: what you gain/lose with encoder-only vs decoder-only vs encoder-decoder
 
-- For each tensor (Q, K, V, attention matrix, etc.), write down its **shape**: $(\text{batch}, \text{seq\ len}, \text{dim})$. This often clarifies what bmm is doing.
-- Re-derive the attention formula from “one query” to “all queries at once”.
-- Draw the **causal mask** triangle and practice masking an attention matrix.
-- Compare batch norm vs layer norm on a tiny numeric example like the one in the notes.
-- Memorize the high-level data flow:
-  **tokens → embeddings + positions → (encoder blocks) → encoder outputs → (decoder with masked + cross-attention) → softmax.**
+## 9. Sources & Literature (IEEE)
 
-## 8. Further Topics / Extensions
+[1] A. Vaswani _et al_., “Attention Is All You Need,” in _Proc. NeurIPS_, 2017.
 
-From here, natural follow-ups include:
+[2] J. Alammar, “The Illustrated Transformer,” 2018. (Conceptual visual reference aligned with slides’ transformer diagrams.)
 
-- Different types of positional encodings (e.g., relative, rotary).
-- Variants like pre-norm vs post-norm transformers.
-- Scaling laws: larger `emb_dim`, more heads, deeper stacks.
-- How these building blocks are used in GPT-style decoder-only models vs full encoder–decoder models.
+[3] A. Radford _et al_., “Language Models are Unsupervised Multitask Learners,” OpenAI, 2019.
 
-## 9. References & Literature (IEEE Style)
+[4] J. Devlin _et al_., “BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding,” in _Proc. NAACL-HLT_, 2019.
 
-[1] A. Vaswani _et al._, “Attention Is All You Need,” in _Proc. Advances in Neural Information Processing Systems (NeurIPS)_, 2017.
-
-[2] J. L. Ba, J. R. Kiros, and G. E. Hinton, “Layer Normalization,” arXiv:1607.06450, 2016.
-
-[3] G. E. Hinton _et al._, “Improving Neural Networks by Preventing Co-Adaptation of Feature Detectors,” arXiv:1207.0580, 2012.
-
-[4] N. Srivastava _et al._, “Dropout: A Simple Way to Prevent Neural Networks from Overfitting,” _J. Mach. Learn. Res._, vol. 15, pp. 1929–1958, 2014.
-
-[5] M. Purandare, _Transformer Architecture – A Visual Guide_, Lecture Notes, Generative AI, OST – Eastern Switzerland University of Applied Sciences, Fall 2024.
+[5] C. Raffel _et al_., “Exploring the Limits of Transfer Learning with a Unified Text-to-Text Transformer,” _JMLR_, 2020.
