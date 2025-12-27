@@ -98,17 +98,22 @@ $$
 The “visual guide” and the Week 3 slides break attention into steps:
 
 1. From token+position embeddings, compute:
-   $$
-   Q = XW_Q,\quad K = XW_K,\quad V = XW_V
-   $$
+
+$$
+Q = XW_Q,\quad K = XW_K,\quad V = XW_V
+$$
+
 2. Compute attention weights using scaled dot-products:
-   $$
-   \text{Attn}(Q,K)=\text{softmax}\Big(\frac{QK^\top}{\sqrt{d_k}}\Big)
-   $$
+
+$$
+\text{Attn}(Q,K)=\text{softmax}\Big(\frac{QK^\top}{\sqrt{d_k}}\Big)
+$$
+
 3. Contextualize by weighted sum of values:
-   $$
-   \text{Context}(X)=\text{Attn}(Q,K),V
-   $$
+
+$$
+\text{Context}(X)=\text{Attn}(Q,K),V
+$$
 
 **Interpretation used in slides:** higher attention score means a key “resonates” more with the query; output is a “blended” representation of values.
 
